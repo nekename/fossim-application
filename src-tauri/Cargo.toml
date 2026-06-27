@@ -1,0 +1,19 @@
+[package]
+name = "fossim-application"
+version = "0.1.0"
+authors = ["Aman Khanna (nekename)"]
+license = "GPL-3.0-or-later"
+edition = "2024"
+
+[lib]
+# The `_lib` suffix is necessary to make the lib name unique.
+name = "fossim_application_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
