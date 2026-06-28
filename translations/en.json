@@ -1,4 +1,7 @@
 {
+	"communities.could_not_fetch_host": "Could not fetch the community's host. Ensure the repository exists and has a configured Fossim host.",
+	"communities.no_url_provided": "Please provide the repository URL of a Fossim community.",
+	"communities.unsupported_forge": "Unsupported forge '{{forge}}'. Currently supported forges: {{supported}}",
 	"onboarding_view.join": "Join",
 	"onboarding_view.join_community": "Join your first community using its repository URL:",
 	"onboarding_view.join_fossim_community.1": "or join",
