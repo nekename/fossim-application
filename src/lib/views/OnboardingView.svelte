@@ -1,7 +1,28 @@
 <script lang="ts">
+	import ConfirmHostView from "$lib/views/ConfirmHostView.svelte";
+
+	import { fetchCommunityHost } from "$lib/communities";
 	import { t } from "$lib/i18n";
 
 	let repositoryInput: HTMLInputElement;
+
+	let fetchedHost: string | null = $state(null);
+	let errorMessage: string | null = $state(null);
+	let clearMessageTimeout: number | null = null;
+	$effect(() => {
+		if (errorMessage) {
+			if (clearMessageTimeout !== null) clearTimeout(clearMessageTimeout);
+			clearMessageTimeout = setTimeout(() => (errorMessage = null), 5000);
+		}
+	});
+
+	async function fetchHost() {
+		try {
+			fetchedHost = await fetchCommunityHost(repositoryInput.value);
+		} catch (error) {
+			errorMessage = error instanceof Error ? error.message : String(error);
+		}
+	}
 </script>
 
 <div class="flex h-screen flex-col items-center justify-center">
@@ -16,7 +37,7 @@
 			placeholder="https://github.com/author/repo"
 			pattern="^(https?://)(github\.com/)[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$"
 		/>
-		<button class="btn btn-primary join-item">
+		<button onclick={fetchHost} class="btn btn-primary join-item">
 			{$t("onboarding_view.join")}
 		</button>
 	</div>
@@ -33,4 +54,18 @@
 		</button>
 		{$t("onboarding_view.join_fossim_community.3")}
 	</span>
+
+	{#if errorMessage}
+		<div class="toast">
+			<div class="alert alert-error">
+				<span>{errorMessage}</span>
+			</div>
+		</div>
+	{:else if fetchedHost}
+		<ConfirmHostView
+			host={fetchedHost}
+			onComplete={() => {}}
+			onCancel={() => (fetchedHost = null)}
+		/>
+	{/if}
 </div>
