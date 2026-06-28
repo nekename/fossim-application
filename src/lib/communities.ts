@@ -2,24 +2,39 @@ import { t } from "./i18n";
 
 import { get } from "svelte/store";
 
-export async function fetchCommunityHost(
+export interface Community {
+	forge: string;
+	path: string;
+}
+
+export async function parseCommunityUrl(
 	communityUrl: string,
-): Promise<string> {
+): Promise<Community> {
 	if (!communityUrl) {
 		throw new Error(get(t)("communities.no_url_provided"));
 	}
 
 	const url = new URL(communityUrl);
 	const forge = url.hostname.split(".")[0];
-	const urls = [];
 
 	if (forge === "github") {
-		urls.push(
-			`https://raw.githubusercontent.com/${url.pathname.split("/").slice(1, 3).join("/")}/main/.fossim.json`,
-		);
-		urls.push(
-			`https://raw.githubusercontent.com/${url.pathname.split("/").slice(1, 3).join("/")}/master/.fossim.json`,
-		);
+		return { forge, path: url.pathname.split("/").slice(1, 3).join("/") };
+	}
+
+	throw new Error(
+		get(t)("communities.unsupported_forge", { forge, supported: "GitHub" }),
+	);
+}
+
+export async function fetchCommunityHost(
+	communityUrl: string,
+): Promise<string> {
+	const { forge, path } = await parseCommunityUrl(communityUrl);
+
+	const urls = [];
+	if (forge === "github") {
+		urls.push(`https://raw.githubusercontent.com/${path}/main/.fossim.json`);
+		urls.push(`https://raw.githubusercontent.com/${path}/master/.fossim.json`);
 	} else {
 		throw new Error(
 			get(t)("communities.unsupported_forge", { forge, supported: "GitHub" }),

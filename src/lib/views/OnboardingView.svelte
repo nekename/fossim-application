@@ -1,12 +1,12 @@
 <script lang="ts">
 	import ConfirmHostView from "$lib/views/ConfirmHostView.svelte";
+	import OAuthView from "$lib/views/OAuthView.svelte";
 
 	import { fetchCommunityHost } from "$lib/communities";
 	import { t } from "$lib/i18n";
 
 	let repositoryInput: HTMLInputElement;
 
-	let fetchedHost: string | null = $state(null);
 	let errorMessage: string | null = $state(null);
 	let clearMessageTimeout: number | null = null;
 	$effect(() => {
@@ -16,9 +16,13 @@
 		}
 	});
 
+	let fetchedCommunity: string | null = $state(null);
+	let fetchedHost: string | null = $state(null);
+	let hostConfirmed: boolean = $state(false);
 	async function fetchHost() {
 		try {
-			fetchedHost = await fetchCommunityHost(repositoryInput.value);
+			fetchedCommunity = repositoryInput.value;
+			fetchedHost = await fetchCommunityHost(fetchedCommunity);
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : String(error);
 		}
@@ -61,11 +65,16 @@
 				<span>{errorMessage}</span>
 			</div>
 		</div>
-	{:else if fetchedHost}
+	{:else if fetchedHost && !hostConfirmed}
 		<ConfirmHostView
 			host={fetchedHost}
-			onComplete={() => {}}
-			onCancel={() => (fetchedHost = null)}
+			onComplete={() => (hostConfirmed = true)}
+			onCancel={() => {
+				fetchedCommunity = null;
+				fetchedHost = null;
+			}}
 		/>
+	{:else if hostConfirmed}
+		<OAuthView community={fetchedCommunity!} host={fetchedHost!} />
 	{/if}
 </div>
