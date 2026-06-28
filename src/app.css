@@ -2,3 +2,10 @@
 @plugin "daisyui" {
 	themes: business --default;
 }
+
+button:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+input:focus,
+textarea:focus {
+	@apply outline-hidden;
+}

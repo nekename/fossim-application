@@ -1,1 +1,8 @@
-{}
+{
+	"onboarding_view.join": "Join",
+	"onboarding_view.join_community": "Join your first community using its repository URL:",
+	"onboarding_view.join_fossim_community.1": "or join",
+	"onboarding_view.join_fossim_community.2": "Fossim's own community",
+	"onboarding_view.join_fossim_community.3": "to get started.",
+	"onboarding_view.welcome": "Welcome!"
+}
