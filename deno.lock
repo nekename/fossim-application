@@ -7,6 +7,7 @@
     "npm:@tailwindcss/vite@4": "4.3.1_vite@8.1.0",
     "npm:@tauri-apps/api@2": "2.11.1",
     "npm:@tauri-apps/cli@2": "2.11.3",
+    "npm:@tauri-store/svelte@2": "2.6.1",
     "npm:daisyui@5": "5.6.2",
     "npm:prettier-plugin-svelte@4": "4.1.1_prettier@3.8.5_svelte@5.56.4",
     "npm:prettier-plugin-tailwindcss@0.8": "0.8.0_prettier@3.8.5_prettier-plugin-svelte@4.1.1__prettier@3.8.5__svelte@5.56.4",
@@ -386,6 +387,21 @@
       ],
       "bin": true
     },
+    "@tauri-store/shared@0.9.1": {
+      "integrity": "sha512-WbX/JnvDxgII0Oiz+31wwc3uTCNqKSk82/ThLQLjeXx3adn6aV2EOh/dCv6ejA9QKAhwV/Nldwyplrk3Deekzg==",
+      "dependencies": [
+        "@tauri-apps/api",
+        "es-toolkit"
+      ]
+    },
+    "@tauri-store/svelte@2.6.1": {
+      "integrity": "sha512-OEyrTGY8O1Oa14mhGkO6R8elBhaSZW9wPWD9jWa3cifnLdD+uHQvKKce6Vf1LQ7CNzCQvqZWFxiIYBVLkIBCEA==",
+      "dependencies": [
+        "@tauri-apps/api",
+        "@tauri-store/shared",
+        "svelte"
+      ]
+    },
     "@tybys/wasm-util@0.10.3": {
       "integrity": "sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==",
       "dependencies": [
@@ -441,6 +457,9 @@
         "graceful-fs",
         "tapable"
       ]
+    },
+    "es-toolkit@1.49.0": {
+      "integrity": "sha512-G5iZ6Pc/FNRY/soKZHC+TxGDD83rHUDXxzaWhGCX44vAv/tMs56WMusnm/KMNK+luUPsgA9U28cGr4RDlSzL2g=="
     },
     "esm-env@1.2.2": {
       "integrity": "sha512-Epxrv+Nr/CaL4ZcFGPJIYLWFom+YeV1DqMLHJoEd9SYRxNbaFruBwfEX/kkHUJf55j2+TUbmDcmuilbP1TmXHA=="
@@ -754,6 +773,7 @@
         "npm:@tailwindcss/vite@4",
         "npm:@tauri-apps/api@2",
         "npm:@tauri-apps/cli@2",
+        "npm:@tauri-store/svelte@2",
         "npm:daisyui@5",
         "npm:prettier-plugin-svelte@4",
         "npm:prettier-plugin-tailwindcss@0.8",
