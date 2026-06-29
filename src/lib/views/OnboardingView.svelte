@@ -75,6 +75,15 @@
 			}}
 		/>
 	{:else if hostConfirmed}
-		<OAuthView community={fetchedCommunity!} host={fetchedHost!} />
+		<OAuthView
+			community={fetchedCommunity!}
+			host={fetchedHost!}
+			onComplete={() => {}}
+			onCancel={() => {
+				fetchedCommunity = null;
+				fetchedHost = null;
+				hostConfirmed = false;
+			}}
+		/>
 	{/if}
 </div>

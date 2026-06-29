@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { t } from "$lib/i18n";
 
+	import { isTauri } from "@tauri-apps/api/core";
+
 	let {
 		host,
 		onComplete,
@@ -20,6 +22,12 @@
 
 		<p class="text-sm">{$t("confirm_host_view.explanation.1")}</p>
 		<p class="text-sm">{$t("confirm_host_view.explanation.2")}</p>
+		<p class="text-sm">
+			{$t("confirm_host_view.explanation.3")}
+			{#if isTauri()}
+				{$t("confirm_host_view.explanation.4")}
+			{/if}
+		</p>
 
 		<button class="btn btn-neutral mt-2 w-full" onclick={onCancel}>
 			{$t("dialog.cancel")}
