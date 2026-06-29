@@ -1,11 +1,15 @@
 <script lang="ts">
 	import OnboardingView from "$lib/views/OnboardingView.svelte";
 
-	import { communities } from "$lib/stores";
+	import { db, liveQuery } from "$lib/db";
+
+	let communities = liveQuery(() => db.communities.toArray());
 </script>
 
-{#if Object.values(communities.state)
-	.map((v) => v.length)
-	.reduce((a, b) => a + b, 0) === 0}
+{#if !$communities}
+	<div class="flex h-screen items-center justify-center">
+		<span class="loading loading-ring loading-xl"></span>
+	</div>
+{:else if $communities.length === 0}
 	<OnboardingView />
 {/if}
