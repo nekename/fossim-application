@@ -25,6 +25,7 @@
 	let fetchedHost: string | null = $state(null);
 	let hostConfirmed: boolean = $state(false);
 	async function fetchHost() {
+		errorMessage = null;
 		try {
 			fetchedCommunity = await parseCommunityUrl(repositoryInput.value);
 			fetchedHost = await fetchCommunityHost(fetchedCommunity);
@@ -33,17 +34,11 @@
 		}
 	}
 
-	async function completeOnboarding(
-		community: Community,
-		clientId: string,
-		accessToken: string,
-	) {
-		await db.authorisedApps.put({
-			forge: community.forge,
-			clientId,
-			accessToken,
+	async function joinCommunity() {
+		await db.communities.put({
+			forge: fetchedCommunity!.forge,
+			path: fetchedCommunity!.path,
 		});
-		await db.communities.put({ forge: community.forge, path: community.path });
 	}
 </script>
 
@@ -96,8 +91,7 @@
 		<OAuthView
 			community={fetchedCommunity!}
 			host={fetchedHost!}
-			onComplete={(clientId, accessToken) =>
-				completeOnboarding(fetchedCommunity!, clientId, accessToken)}
+			onComplete={joinCommunity}
 			onCancel={() => {
 				fetchedCommunity = null;
 				fetchedHost = null;

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fetchClientId } from "$lib/backend";
 	import { type Community } from "$lib/communities";
+	import { db } from "$lib/db";
 	import { t } from "$lib/i18n";
 
 	import { invoke, isTauri } from "@tauri-apps/api/core";
@@ -15,7 +16,7 @@
 	}: {
 		community: Community;
 		host: string;
-		onComplete: (clientId: string, accessToken: string) => void;
+		onComplete: () => void;
 		onCancel: () => void;
 	} = $props();
 
@@ -34,6 +35,11 @@
 			errorMessage = $t("oauth_view.could_not_contact_host", {
 				error: error instanceof Error ? error.message : String(error),
 			});
+			return;
+		}
+
+		if (await db.authorisedApps.get({ forge, clientId })) {
+			onComplete();
 			return;
 		}
 
@@ -62,7 +68,12 @@
 	once(
 		"oauth_success",
 		(event: { payload: { access_token: string; token_type: string } }) => {
-			onComplete(clientId!, event.payload.access_token);
+			db.authorisedApps.put({
+				forge: community.forge,
+				clientId: clientId!,
+				accessToken: event.payload.access_token,
+			});
+			onComplete();
 		},
 	);
 
