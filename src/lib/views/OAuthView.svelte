@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { makeApiRequest } from "$lib/backend";
-	import { parseCommunityUrl } from "$lib/communities";
+	import { fetchClientId } from "$lib/backend";
+	import { type Community } from "$lib/communities";
 	import { t } from "$lib/i18n";
 
 	import { invoke, isTauri } from "@tauri-apps/api/core";
@@ -13,7 +13,7 @@
 		onComplete,
 		onCancel,
 	}: {
-		community: string;
+		community: Community;
 		host: string;
 		onComplete: (clientId: string, accessToken: string) => void;
 		onCancel: () => void;
@@ -26,11 +26,10 @@
 	let code: string | null = $state(null);
 	let url: string | null = $state(null);
 	onMount(async () => {
-		let { forge } = await parseCommunityUrl(community);
+		let { forge } = community;
 
 		try {
-			clientId = (await makeApiRequest(host, `/api/oauth/${forge}/client_id`))
-				.client_id;
+			clientId = await fetchClientId(host, forge);
 		} catch (error) {
 			errorMessage = $t("oauth_view.could_not_contact_host", {
 				error: error instanceof Error ? error.message : String(error),

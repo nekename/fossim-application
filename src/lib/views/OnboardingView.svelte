@@ -2,7 +2,12 @@
 	import ConfirmHostView from "$lib/views/ConfirmHostView.svelte";
 	import OAuthView from "$lib/views/OAuthView.svelte";
 
-	import { fetchCommunityHost } from "$lib/communities";
+	import {
+		fetchCommunityHost,
+		parseCommunityUrl,
+		type Community,
+	} from "$lib/communities";
+	import { db } from "$lib/db";
 	import { t } from "$lib/i18n";
 
 	let repositoryInput: HTMLInputElement;
@@ -16,16 +21,29 @@
 		}
 	});
 
-	let fetchedCommunity: string | null = $state(null);
+	let fetchedCommunity: Community | null = $state(null);
 	let fetchedHost: string | null = $state(null);
 	let hostConfirmed: boolean = $state(false);
 	async function fetchHost() {
 		try {
-			fetchedCommunity = repositoryInput.value;
+			fetchedCommunity = await parseCommunityUrl(repositoryInput.value);
 			fetchedHost = await fetchCommunityHost(fetchedCommunity);
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : String(error);
 		}
+	}
+
+	async function completeOnboarding(
+		community: Community,
+		clientId: string,
+		accessToken: string,
+	) {
+		await db.authorisedApps.put({
+			forge: community.forge,
+			clientId,
+			accessToken,
+		});
+		await db.communities.put({ forge: community.forge, path: community.path });
 	}
 </script>
 
@@ -78,7 +96,8 @@
 		<OAuthView
 			community={fetchedCommunity!}
 			host={fetchedHost!}
-			onComplete={() => {}}
+			onComplete={(clientId, accessToken) =>
+				completeOnboarding(fetchedCommunity!, clientId, accessToken)}
 			onCancel={() => {
 				fetchedCommunity = null;
 				fetchedHost = null;

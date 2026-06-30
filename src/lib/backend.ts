@@ -16,3 +16,24 @@ export async function makeApiRequest(
 	}
 	return await response.json();
 }
+
+let cachedClientIds: { [host: string]: { [forge: string]: string } } = {};
+export async function fetchClientId(
+	host: string,
+	forge: string,
+): Promise<string> {
+	if (cachedClientIds[host] && cachedClientIds[host][forge]) {
+		return cachedClientIds[host][forge];
+	}
+	let clientId = (await makeApiRequest(host, `/api/oauth/${forge}/client_id`))
+		.client_id;
+	cachedClientIds[host] = cachedClientIds[host] || {};
+	cachedClientIds[host][forge] = clientId;
+	return clientId;
+}
+
+export interface AuthorisedApp {
+	forge: string;
+	clientId: string;
+	accessToken: string;
+}

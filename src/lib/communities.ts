@@ -26,10 +26,14 @@ export async function parseCommunityUrl(
 	);
 }
 
-export async function fetchCommunityHost(
-	communityUrl: string,
-): Promise<string> {
-	const { forge, path } = await parseCommunityUrl(communityUrl);
+let cachedCommunityHosts: Record<string, string> = {};
+export async function fetchCommunityHost({
+	forge,
+	path,
+}: Community): Promise<string> {
+	if (cachedCommunityHosts[`${forge}/${path}`]) {
+		return cachedCommunityHosts[`${forge}/${path}`];
+	}
 
 	const urls = [];
 	if (forge === "github") {
@@ -46,6 +50,7 @@ export async function fetchCommunityHost(
 		if (response.ok) {
 			const data = await response.json();
 			if (data && data.host) {
+				cachedCommunityHosts[`${forge}/${path}`] = data.host;
 				return data.host;
 			}
 		}
