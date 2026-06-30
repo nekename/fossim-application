@@ -1,4 +1,5 @@
 {
+	"channel_list.select_community": "Select a community to start collaborating",
 	"communities.could_not_fetch_host": "Could not fetch the community's host. Ensure the repository exists and has a configured Fossim host.",
 	"communities.no_url_provided": "Please provide the repository URL of a Fossim community.",
 	"communities.unsupported_forge": "Unsupported forge '{{forge}}'. Currently supported forges: {{supported}}",

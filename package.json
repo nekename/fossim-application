@@ -16,6 +16,7 @@
 	"dependencies": {
 		"@tauri-apps/api": "^2",
 		"dexie": "^4",
+		"octokit": "^5",
 		"phosphor-svelte": "^3"
 	},
 	"devDependencies": {

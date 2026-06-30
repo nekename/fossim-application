@@ -1,10 +1,14 @@
 <script lang="ts">
 	import JoinCommunityView from "$lib/views/JoinCommunityView.svelte";
 
+	import type { Community } from "$lib/communities";
 	import { db, liveQuery } from "$lib/db";
 	import { t } from "$lib/i18n";
 
 	import PlusIcon from "phosphor-svelte/lib/PlusIcon";
+
+	let { selectCommunity }: { selectCommunity: (community: Community) => void } =
+		$props();
 
 	let communities = liveQuery(() => db.communities.toArray());
 
@@ -28,7 +32,7 @@
 			<ul class="menu w-full grow gap-2">
 				{#each $communities as community}
 					<li>
-						<button>
+						<button onclick={() => selectCommunity(community)}>
 							{#if community.forge === "github"}
 								<img
 									src={"https://avatars.githubusercontent.com/" +
