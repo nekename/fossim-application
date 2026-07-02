@@ -10,7 +10,11 @@
 	import { db } from "$lib/db";
 	import { t } from "$lib/i18n";
 
-	let { onClose }: { onClose: () => void } = $props();
+	let {
+		onComplete,
+		onClose,
+	}: { onComplete: (community: Community) => void; onClose: () => void } =
+		$props();
 
 	let repositoryInput: HTMLInputElement;
 
@@ -53,7 +57,7 @@
 			forge: fetchedCommunity!.forge,
 			path: fetchedCommunity!.path,
 		});
-		onClose();
+		onComplete(fetchedCommunity!);
 	}
 </script>
 

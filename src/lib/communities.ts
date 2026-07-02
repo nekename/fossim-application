@@ -1,3 +1,5 @@
+import { fetchClientId } from "./backend";
+import { db } from "./db";
 import { t } from "./i18n";
 
 import { get } from "svelte/store";
@@ -57,4 +59,84 @@ export async function fetchCommunityHost({
 	}
 
 	throw new Error(get(t)("communities.could_not_fetch_host"));
+}
+
+export async function leaveCommunity(community: Community): Promise<void> {
+	const host = await fetchCommunityHost(community);
+	const clientId = await fetchClientId(host, community.forge);
+
+	await db.communities.delete([community.forge, community.path]);
+
+	for (const otherCommunity of await db.communities
+		.where("forge")
+		.equals(community.forge)
+		.toArray()) {
+		if ((await fetchCommunityHost(otherCommunity)) === host) {
+			return;
+		}
+	}
+
+	await db.authorisedApps.delete([community.forge, clientId!]);
+}
+
+async function getAccessToken(community: Community): Promise<string> {
+	const host = await fetchCommunityHost(community);
+	const clientId = await fetchClientId(host, community.forge);
+
+	const accessToken = (
+		await db.authorisedApps.get({ forge: community.forge, clientId })
+	)?.accessToken;
+
+	if (!accessToken) {
+		throw new Error(get(t)("communities.no_access_token"));
+	}
+
+	return accessToken;
+}
+
+export async function fetchChannels(
+	community: Community,
+): Promise<{ id: string; title: string; locked: boolean }[]> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { fetchChannels } = await import("./forges/github");
+		return await fetchChannels(accessToken, community.path);
+	} else {
+		throw new Error(
+			get(t)("communities.unsupported_forge", {
+				forge: community.forge,
+				supported: "GitHub",
+			}),
+		);
+	}
+}
+
+export async function fetchThreads(
+	community: Community,
+	after?: string,
+): Promise<{
+	threads: {
+		id: string;
+		title: string;
+		locked: boolean;
+		isAnswered: boolean;
+		category: { id: string; name: string; isAnswerable: boolean };
+	}[];
+	hasNextPage: boolean;
+	endCursor: string | null;
+}> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { fetchThreads } = await import("./forges/github");
+		return await fetchThreads(accessToken, community.path, after);
+	} else {
+		throw new Error(
+			get(t)("communities.unsupported_forge", {
+				forge: community.forge,
+				supported: "GitHub",
+			}),
+		);
+	}
 }

@@ -14,6 +14,7 @@
 	},
 	"license": "GPL-3.0-or-later",
 	"dependencies": {
+		"@octokit/graphql": "^9",
 		"@tauri-apps/api": "^2",
 		"dexie": "^4",
 		"phosphor-svelte": "^3"

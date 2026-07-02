@@ -1,10 +1,15 @@
 <script lang="ts">
 	import JoinCommunityView from "$lib/views/JoinCommunityView.svelte";
 
+	import type { Community } from "$lib/communities";
 	import { db, liveQuery } from "$lib/db";
 	import { t } from "$lib/i18n";
 
 	import PlusIcon from "phosphor-svelte/lib/PlusIcon";
+
+	let {
+		selectedCommunity = $bindable(),
+	}: { selectedCommunity: Community | null } = $props();
 
 	let communities = liveQuery(() => db.communities.toArray());
 
@@ -28,13 +33,30 @@
 			<ul class="menu w-full grow gap-2">
 				{#each $communities as community}
 					<li>
-						<button>
+						<button
+							onclick={() => {
+								selectedCommunity = community;
+							}}
+							class:w-min={!isDrawerOpen}
+							class:menu-active={selectedCommunity?.forge === community.forge &&
+								selectedCommunity?.path === community.path}
+						>
 							{#if community.forge === "github"}
 								<img
 									src={"https://avatars.githubusercontent.com/" +
 										community.path.split("/")[0]}
 									alt={community.path.split("/")[0]}
-									class="mr-1 inline-block size-10 min-w-10"
+									class={[
+										"drop-shadow-primary inline-block size-10 min-w-10 rounded-full transition-all duration-200",
+										isDrawerOpen && "mr-1",
+										!isDrawerOpen &&
+											(selectedCommunity?.forge !== community.forge ||
+												selectedCommunity?.path !== community.path) &&
+											"blur-[1px]",
+										selectedCommunity?.forge === community.forge &&
+											selectedCommunity?.path === community.path &&
+											"drop-shadow-xl/30",
+									]}
 								/>
 							{:else}
 								<span
@@ -53,9 +75,15 @@
 				<div class="divider -my-0.5"></div>
 
 				<li>
-					<button onclick={() => (joinCommunityViewOpen = true)}>
+					<button
+						onclick={() => (joinCommunityViewOpen = true)}
+						class:w-min={!isDrawerOpen}
+					>
 						<PlusIcon
-							class="text-base-content mr-1 inline-block size-10 min-w-10"
+							class={[
+								"text-base-content inline-block size-10 min-w-10 transition-all duration-200",
+								isDrawerOpen && "mr-1",
+							]}
 						/>
 						<span class="is-drawer-close:hidden truncate">
 							{$t("community_list.join_community")}
@@ -68,5 +96,11 @@
 </div>
 
 {#if joinCommunityViewOpen}
-	<JoinCommunityView onClose={() => (joinCommunityViewOpen = false)} />
+	<JoinCommunityView
+		onComplete={(community) => {
+			joinCommunityViewOpen = false;
+			selectedCommunity = community;
+		}}
+		onClose={() => (joinCommunityViewOpen = false)}
+	/>
 {/if}
