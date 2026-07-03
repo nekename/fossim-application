@@ -94,9 +94,34 @@ async function getAccessToken(community: Community): Promise<string> {
 	return accessToken;
 }
 
-export async function fetchChannels(
-	community: Community,
-): Promise<{ id: string; title: string; locked: boolean }[]> {
+export interface Comment {
+	id: string;
+	author: { login: string };
+	body: string;
+	replies?: { totalCount: number };
+	isAnswer?: boolean;
+	minimizedReason?: string | null;
+	publishedAt: string;
+	includesCreatedEdit: boolean;
+	reactionGroups: {
+		content: string;
+		createdAt: string | null;
+		viewerHasReacted: boolean;
+	}[];
+}
+
+export interface Channel extends Comment {
+	title: string;
+	locked: boolean;
+	url: string;
+}
+
+export interface Thread extends Channel {
+	isAnswered: boolean;
+	category: { id: string; name: string; isAnswerable: boolean };
+}
+
+export async function fetchChannels(community: Community): Promise<Channel[]> {
 	const accessToken = await getAccessToken(community);
 
 	if (community.forge === "github") {
@@ -116,13 +141,7 @@ export async function fetchThreads(
 	community: Community,
 	after?: string,
 ): Promise<{
-	threads: {
-		id: string;
-		title: string;
-		locked: boolean;
-		isAnswered: boolean;
-		category: { id: string; name: string; isAnswerable: boolean };
-	}[];
+	threads: Thread[];
 	hasNextPage: boolean;
 	endCursor: string | null;
 }> {
@@ -131,6 +150,48 @@ export async function fetchThreads(
 	if (community.forge === "github") {
 		const { fetchThreads } = await import("./forges/github");
 		return await fetchThreads(accessToken, community.path, after);
+	} else {
+		throw new Error(
+			get(t)("communities.unsupported_forge", {
+				forge: community.forge,
+				supported: "GitHub",
+			}),
+		);
+	}
+}
+
+export async function fetchComments(
+	community: Community,
+	channelId: string,
+	before?: string,
+): Promise<{
+	comments: Comment[];
+	hasPreviousPage: boolean;
+	startCursor: string | null;
+}> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { fetchComments } = await import("./forges/github");
+		return await fetchComments(accessToken, channelId, before);
+	} else {
+		throw new Error(
+			get(t)("communities.unsupported_forge", {
+				forge: community.forge,
+				supported: "GitHub",
+			}),
+		);
+	}
+}
+
+export async function fetchEmojis(
+	community: Community,
+): Promise<Record<string, string>> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { fetchEmojis } = await import("./forges/github");
+		return await fetchEmojis(accessToken);
 	} else {
 		throw new Error(
 			get(t)("communities.unsupported_forge", {

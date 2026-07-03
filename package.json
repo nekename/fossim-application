@@ -17,7 +17,14 @@
 		"@octokit/graphql": "^9",
 		"@tauri-apps/api": "^2",
 		"dexie": "^4",
-		"phosphor-svelte": "^3"
+		"dompurify": "^3",
+		"highlight.js": "^11",
+		"marked": "^18",
+		"marked-alert": "^2",
+		"marked-emoji": "^2",
+		"marked-highlight": "^2",
+		"phosphor-svelte": "^3",
+		"svelte-inview": "^4"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^3",

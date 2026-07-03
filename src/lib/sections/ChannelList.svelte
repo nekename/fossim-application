@@ -3,7 +3,9 @@
 		fetchChannels,
 		fetchThreads,
 		leaveCommunity,
+		type Channel,
 		type Community,
+		type Thread,
 	} from "$lib/communities";
 	import { t } from "$lib/i18n";
 
@@ -14,21 +16,22 @@
 	import SignOutIcon from "phosphor-svelte/lib/SignOutIcon";
 	import { onMount } from "svelte";
 
-	let { community, show }: { community: Community; show: boolean } = $props();
+	let {
+		community,
+		show,
+		channels = $bindable(),
+		threads = $bindable(),
+		selectedChannel = $bindable(),
+	}: {
+		community: Community;
+		show: boolean;
+		channels: Channel[] | null;
+		threads: Thread[] | null;
+		selectedChannel: { community: Community; id: string } | null;
+	} = $props();
 
 	let errorMessage: string | null = $state(null);
 
-	let channels: { id: string; title: string; locked: boolean }[] | null =
-		$state(null);
-	let threads:
-		| {
-				id: string;
-				title: string;
-				locked: boolean;
-				isAnswered: boolean;
-				category: { id: string; name: string; isAnswerable: boolean };
-		  }[]
-		| null = $state(null);
 	let threadsHasNextPage: boolean | null = $state(null);
 	let threadsEndCursor: string | null = $state(null);
 
@@ -65,7 +68,7 @@
 </script>
 
 <div
-	class="bg-base-200 flex h-screen w-72 flex-col overflow-scroll p-4"
+	class="bg-base-200 flex h-screen w-72 min-w-72 flex-col overflow-scroll p-4"
 	class:!hidden={!show}
 >
 	<div class="mb-2.5 flex flex-row items-center justify-between">
@@ -100,7 +103,10 @@
 			</span>
 		{:else}
 			{#each channels as channel}
-				<button class="btn btn-ghost w-full justify-start px-1.5">
+				<button
+					onclick={() => (selectedChannel = { community, id: channel.id })}
+					class="btn btn-ghost w-full justify-start px-1.5"
+				>
 					{#if channel.locked}
 						<LockSimpleIcon class="mr-1 size-4.5 min-w-4.5" />
 					{:else}
@@ -120,7 +126,10 @@
 			</span>
 		{:else}
 			{#each threads as thread}
-				<button class="btn btn-ghost w-full justify-start px-1.5">
+				<button
+					onclick={() => (selectedChannel = { community, id: thread.id })}
+					class="btn btn-ghost w-full justify-start px-1.5"
+				>
 					{#if thread.isAnswered}
 						<CheckCircleIcon class="mr-1 size-4.5 min-w-4.5" />
 					{:else if thread.category.isAnswerable}

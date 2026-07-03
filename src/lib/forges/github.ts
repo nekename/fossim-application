@@ -1,3 +1,4 @@
+import { type Channel, type Comment, type Thread } from "../communities";
 import { t } from "../i18n";
 
 import { graphql, type GraphQlQueryResponseData } from "@octokit/graphql";
@@ -43,7 +44,7 @@ async function fetchChannelCategoryId(accessToken: string, path: string) {
 export async function fetchChannels(
 	accessToken: string,
 	path: string,
-): Promise<{ id: string; title: string; locked: boolean }[]> {
+): Promise<Channel[]> {
 	const [owner, repo] = path.split("/");
 
 	const categoryId = await fetchChannelCategoryId(accessToken, path);
@@ -56,6 +57,18 @@ export async function fetchChannels(
 							id
 							title
 							locked
+							url
+							author {
+								login
+							}
+							body
+							publishedAt
+							includesCreatedEdit
+							reactionGroups {
+								content
+								createdAt
+								viewerHasReacted
+							}
 						}
 					}
 				}
@@ -79,13 +92,7 @@ export async function fetchThreads(
 	path: string,
 	after?: string,
 ): Promise<{
-	threads: {
-		id: string;
-		title: string;
-		locked: boolean;
-		isAnswered: boolean;
-		category: { id: string; name: string; isAnswerable: boolean };
-	}[];
+	threads: Thread[];
 	hasNextPage: boolean;
 	endCursor: string | null;
 }> {
@@ -101,11 +108,23 @@ export async function fetchThreads(
 							id
 							title
 							locked
+							url
 							isAnswered
 							category {
 								id
 								name
 								isAnswerable
+							}
+							author {
+								login
+							}
+							body
+							publishedAt
+							includesCreatedEdit
+							reactionGroups {
+								content
+								createdAt
+								viewerHasReacted
 							}
 						}
 						pageInfo {
@@ -133,4 +152,75 @@ export async function fetchThreads(
 		endCursor:
 			discussionsRes.repository?.discussions?.pageInfo?.endCursor || null,
 	};
+}
+
+export async function fetchComments(
+	accessToken: string,
+	channelId: string,
+	before?: string,
+): Promise<{
+	comments: Comment[];
+	hasPreviousPage: boolean;
+	startCursor: string | null;
+}> {
+	const commentsRes: GraphQlQueryResponseData = await graphql(
+		`
+			query ($channelId: ID!, $before: String) {
+				node(id: $channelId) {
+					... on Discussion {
+						comments(last: 100, before: $before) {
+							nodes {
+								id
+								author {
+									login
+								}
+								body
+								replies {
+									totalCount
+								}
+								isAnswer
+								minimizedReason
+								publishedAt
+								includesCreatedEdit
+								reactionGroups {
+									content
+									createdAt
+									viewerHasReacted
+								}
+							}
+							pageInfo {
+								hasPreviousPage
+								startCursor
+							}
+						}
+					}
+				}
+			}
+		`,
+		{
+			channelId,
+			before,
+			headers: { authorization: `token ${accessToken}` },
+		},
+	);
+
+	return {
+		comments: commentsRes.node?.comments?.nodes || [],
+		hasPreviousPage:
+			commentsRes.node?.comments?.pageInfo?.hasPreviousPage || false,
+		startCursor: commentsRes.node?.comments?.pageInfo?.startCursor || null,
+	};
+}
+
+let emojis: Record<string, string> | null = null;
+export async function fetchEmojis(
+	accessToken: string,
+): Promise<Record<string, string>> {
+	if (emojis) return emojis;
+	const emojisRes = await fetch("https://api.github.com/emojis", {
+		headers: { authorization: `token ${accessToken}` },
+	});
+	if (!emojisRes.ok) return {};
+	emojis = await emojisRes.json();
+	return emojis!;
 }

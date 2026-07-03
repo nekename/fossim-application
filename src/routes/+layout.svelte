@@ -4,6 +4,15 @@
 	import { isTauri, invoke } from "@tauri-apps/api/core";
 
 	let { children } = $props();
+
+	if (isTauri()) {
+		window.open = (url: string | URL | undefined) => {
+			if (!url) return null;
+			else if (url instanceof URL) url = url.toString();
+			invoke("open_url", { url });
+			return null;
+		};
+	}
 </script>
 
 <svelte:document
