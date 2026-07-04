@@ -1,0 +1,37 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1E1B32"/>
+      <stop offset="1" stop-color="#332B58"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.07"/>
+      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="badgeClip">
+      <rect x="0" y="0" width="512" height="512" rx="112"/>
+    </clipPath>
+  </defs>
+
+  <!-- background badge -->
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+
+  <!-- subtle top sheen for depth, clipped to badge shape -->
+  <rect x="0" y="0" width="512" height="260" fill="url(#sheen)" clip-path="url(#badgeClip)"/>
+
+  <!-- thin inner keyline for edge definition -->
+  <rect x="1.5" y="1.5" width="509" height="509" rx="110.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="2"/>
+
+  <!-- the hash mark: 4 bars on a true symmetric grid, centered on the canvas -->
+  <rect x="190" y="106" width="36" height="300" rx="10" fill="#F3F1FF"/>
+  <rect x="286" y="106" width="36" height="300" rx="10" fill="#F3F1FF"/>
+  <rect x="106" y="190" width="300" height="36" rx="10" fill="#F3F1FF"/>
+  <rect x="106" y="286" width="300" height="36" rx="10" fill="#F3F1FF"/>
+
+  <!-- commit nodes at each intersection -->
+  <circle cx="208" cy="208" r="13" fill="#3E9C89"/>
+  <circle cx="208" cy="304" r="13" fill="#3E9C89"/>
+  <circle cx="304" cy="304" r="13" fill="#3E9C89"/>
+  <!-- single accent node: the one "live" signal -->
+  <circle cx="304" cy="208" r="13" fill="#F2B33D"/>
+</svg>
