@@ -4,6 +4,15 @@ import { t } from "./i18n";
 
 import { get } from "svelte/store";
 
+function unsupportedForgeError(forge: string) {
+	return new Error(
+		get(t)("communities.unsupported_forge", {
+			forge,
+			supported: "GitHub",
+		}),
+	);
+}
+
 export interface Community {
 	forge: string;
 	path: string;
@@ -23,9 +32,7 @@ export async function parseCommunityUrl(
 		return { forge, path: url.pathname.split("/").slice(1, 3).join("/") };
 	}
 
-	throw new Error(
-		get(t)("communities.unsupported_forge", { forge, supported: "GitHub" }),
-	);
+	throw unsupportedForgeError(forge);
 }
 
 let cachedCommunityHosts: Record<string, string> = {};
@@ -42,9 +49,7 @@ export async function fetchCommunityHost({
 		urls.push(`https://raw.githubusercontent.com/${path}/main/.fossim.json`);
 		urls.push(`https://raw.githubusercontent.com/${path}/master/.fossim.json`);
 	} else {
-		throw new Error(
-			get(t)("communities.unsupported_forge", { forge, supported: "GitHub" }),
-		);
+		throw unsupportedForgeError(forge);
 	}
 
 	for (const url of urls) {
@@ -128,12 +133,7 @@ export async function fetchChannels(community: Community): Promise<Channel[]> {
 		const { fetchChannels } = await import("./forges/github");
 		return await fetchChannels(accessToken, community.path);
 	} else {
-		throw new Error(
-			get(t)("communities.unsupported_forge", {
-				forge: community.forge,
-				supported: "GitHub",
-			}),
-		);
+		throw unsupportedForgeError(community.forge);
 	}
 }
 
@@ -151,12 +151,7 @@ export async function fetchThreads(
 		const { fetchThreads } = await import("./forges/github");
 		return await fetchThreads(accessToken, community.path, after);
 	} else {
-		throw new Error(
-			get(t)("communities.unsupported_forge", {
-				forge: community.forge,
-				supported: "GitHub",
-			}),
-		);
+		throw unsupportedForgeError(community.forge);
 	}
 }
 
@@ -175,12 +170,7 @@ export async function fetchComments(
 		const { fetchComments } = await import("./forges/github");
 		return await fetchComments(accessToken, channelId, before);
 	} else {
-		throw new Error(
-			get(t)("communities.unsupported_forge", {
-				forge: community.forge,
-				supported: "GitHub",
-			}),
-		);
+		throw unsupportedForgeError(community.forge);
 	}
 }
 
@@ -199,12 +189,7 @@ export async function fetchReplies(
 		const { fetchReplies } = await import("./forges/github");
 		return await fetchReplies(accessToken, commentId, before);
 	} else {
-		throw new Error(
-			get(t)("communities.unsupported_forge", {
-				forge: community.forge,
-				supported: "GitHub",
-			}),
-		);
+		throw unsupportedForgeError(community.forge);
 	}
 }
 
@@ -217,11 +202,6 @@ export async function fetchEmojis(
 		const { fetchEmojis } = await import("./forges/github");
 		return await fetchEmojis(accessToken);
 	} else {
-		throw new Error(
-			get(t)("communities.unsupported_forge", {
-				forge: community.forge,
-				supported: "GitHub",
-			}),
-		);
+		throw unsupportedForgeError(community.forge);
 	}
 }
