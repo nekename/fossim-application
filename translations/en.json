@@ -31,6 +31,7 @@
 	"join_community_view.join_community": "Join using a repository URL:",
 	"join_community_view.title": "Join community",
 	"message_list.loading_more_comments": "Loading more comments...",
+	"message_list.loading_more_replies": "Loading more replies...",
 	"message_list.open_in_browser": "Open in browser",
 	"oauth_view.copied": "Copied!",
 	"oauth_view.could_not_complete_oauth": "Could not complete the authorisation flow: {{error}}",

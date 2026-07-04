@@ -212,6 +212,64 @@ export async function fetchComments(
 	};
 }
 
+export async function fetchReplies(
+	accessToken: string,
+	commentId: string,
+	before?: string,
+): Promise<{
+	comments: Comment[];
+	hasPreviousPage: boolean;
+	startCursor: string | null;
+}> {
+	const repliesRes: GraphQlQueryResponseData = await graphql(
+		`
+			query ($commentId: ID!, $before: String) {
+				node(id: $commentId) {
+					... on DiscussionComment {
+						replies(last: 100, before: $before) {
+							nodes {
+								id
+								author {
+									login
+								}
+								body
+								replies {
+									totalCount
+								}
+								isAnswer
+								minimizedReason
+								publishedAt
+								includesCreatedEdit
+								reactionGroups {
+									content
+									createdAt
+									viewerHasReacted
+								}
+							}
+							pageInfo {
+								hasPreviousPage
+								startCursor
+							}
+						}
+					}
+				}
+			}
+		`,
+		{
+			commentId,
+			before,
+			headers: { authorization: `token ${accessToken}` },
+		},
+	);
+
+	return {
+		comments: repliesRes.node?.replies?.nodes || [],
+		hasPreviousPage:
+			repliesRes.node?.replies?.pageInfo?.hasPreviousPage || false,
+		startCursor: repliesRes.node?.replies?.pageInfo?.startCursor || null,
+	};
+}
+
 let emojis: Record<string, string> | null = null;
 export async function fetchEmojis(
 	accessToken: string,

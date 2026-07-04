@@ -184,6 +184,30 @@ export async function fetchComments(
 	}
 }
 
+export async function fetchReplies(
+	community: Community,
+	commentId: string,
+	before?: string,
+): Promise<{
+	comments: Comment[];
+	hasPreviousPage: boolean;
+	startCursor: string | null;
+}> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { fetchReplies } = await import("./forges/github");
+		return await fetchReplies(accessToken, commentId, before);
+	} else {
+		throw new Error(
+			get(t)("communities.unsupported_forge", {
+				forge: community.forge,
+				supported: "GitHub",
+			}),
+		);
+	}
+}
+
 export async function fetchEmojis(
 	community: Community,
 ): Promise<Record<string, string>> {

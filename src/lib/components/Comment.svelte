@@ -7,7 +7,17 @@
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
 	import WarningCircleIcon from "phosphor-svelte/lib/WarningCircleIcon";
 
-	let { comment, marked }: { comment: Comment; marked: Marked } = $props();
+	let {
+		comment,
+		marked,
+		showReplies,
+		onViewReplies,
+	}: {
+		comment: Comment;
+		marked: Marked;
+		showReplies: boolean;
+		onViewReplies?: () => void;
+	} = $props();
 
 	function handleClick(event: MouseEvent | KeyboardEvent) {
 		const link = (event.target as HTMLElement).closest("a");
@@ -118,8 +128,8 @@
 		{/each}
 	</div>
 
-	{#if comment.replies && comment.replies.totalCount > 0}
-		<button class="link link-info link-hover mt-3">
+	{#if showReplies && comment.replies && comment.replies.totalCount > 0}
+		<button onclick={onViewReplies} class="link link-info link-hover mt-3">
 			{comment.replies.totalCount === 1
 				? $t("comment.view_reply")
 				: $t("comment.view_replies", {
