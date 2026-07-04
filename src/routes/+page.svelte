@@ -15,6 +15,9 @@
 			threads: Thread[];
 		};
 	} = $state({});
+	let selectedChannels: {
+		[community: string]: string | null;
+	} = $state({});
 	$effect(() => {
 		if ($communities) {
 			for (const community of $communities) {
@@ -22,30 +25,26 @@
 					channels: [],
 					threads: [],
 				};
+				selectedChannels[`${community.forge}/${community.path}`] ??= null;
 			}
 		}
 	});
 
 	let selectedCommunity: Community | null = $state(null);
-	let selectedChannel: { community: Community; id: string } | null =
-		$state(null);
 	$effect(() => {
 		if (
 			$communities &&
+			selectedCommunity &&
 			!$communities.find(
 				(c) =>
-					c.forge === selectedCommunity?.forge &&
-					c.path === selectedCommunity?.path,
+					c.forge === selectedCommunity!.forge &&
+					c.path === selectedCommunity!.path,
 			)
 		) {
+			selectedChannels[
+				`${selectedCommunity!.forge}/${selectedCommunity!.path}`
+			] = null;
 			selectedCommunity = null;
-			selectedChannel = null;
-		} else if (
-			selectedChannel &&
-			(selectedChannel.community.forge !== selectedCommunity?.forge ||
-				selectedChannel.community.path !== selectedCommunity?.path)
-		) {
-			selectedChannel = null;
 		}
 	});
 </script>
@@ -69,7 +68,7 @@
 		{/if}
 
 		{#each $communities as community}
-			{#if channels[`${community.forge}/${community.path}`]}
+			{#if channels[`${community.forge}/${community.path}`] && selectedChannels[`${community.forge}/${community.path}`] !== undefined}
 				<ChannelList
 					{community}
 					show={selectedCommunity?.forge === community.forge &&
@@ -80,7 +79,9 @@
 					bind:threads={
 						channels[`${community.forge}/${community.path}`].threads
 					}
-					bind:selectedChannel
+					bind:selectedChannel={
+						selectedChannels[`${community.forge}/${community.path}`]
+					}
 				/>
 
 				{#each channels[`${community.forge}/${community.path}`].channels.concat(channels[`${community.forge}/${community.path}`].threads) as channel (channel.id)}
@@ -89,13 +90,14 @@
 						{channel}
 						show={selectedCommunity?.forge === community.forge &&
 							selectedCommunity?.path === community.path &&
-							selectedChannel?.id === channel.id}
+							selectedChannels[`${community.forge}/${community.path}`] ===
+								channel.id}
 					/>
 				{/each}
 			{/if}
 		{/each}
 
-		{#if selectedCommunity && !selectedChannel}
+		{#if selectedCommunity && !selectedChannels[`${selectedCommunity.forge}/${selectedCommunity.path}`]}
 			<div class="flex h-screen w-full items-center justify-center">
 				<span class="text-base-content/50 text-lg">
 					{$t("channel_list.select_channel")}

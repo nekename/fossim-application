@@ -27,7 +27,7 @@
 		show: boolean;
 		channels: Channel[] | null;
 		threads: Thread[] | null;
-		selectedChannel: { community: Community; id: string } | null;
+		selectedChannel: string | null;
 	} = $props();
 
 	let errorMessage: string | null = $state(null);
@@ -104,8 +104,9 @@
 		{:else}
 			{#each channels as channel}
 				<button
-					onclick={() => (selectedChannel = { community, id: channel.id })}
+					onclick={() => (selectedChannel = channel.id)}
 					class="btn btn-ghost w-full justify-start px-1.5"
+					class:bg-primary={selectedChannel === channel.id}
 				>
 					{#if channel.locked}
 						<LockSimpleIcon class="mr-1 size-4.5 min-w-4.5" />
@@ -127,8 +128,9 @@
 		{:else}
 			{#each threads as thread}
 				<button
-					onclick={() => (selectedChannel = { community, id: thread.id })}
+					onclick={() => (selectedChannel = thread.id)}
 					class="btn btn-ghost w-full justify-start px-1.5"
+					class:bg-primary={selectedChannel === thread.id}
 				>
 					{#if thread.isAnswered}
 						<CheckCircleIcon class="mr-1 size-4.5 min-w-4.5" />
