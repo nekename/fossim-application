@@ -1,10 +1,13 @@
 <script lang="ts">
+	import MessageBox from "$lib/components/MessageBox.svelte";
+
 	import { type Comment } from "$lib/communities";
 	import { t } from "$lib/i18n";
 	import { marked } from "$lib/marked";
 
 	import DOMPurify from "dompurify";
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
+	import PencilSimpleIcon from "phosphor-svelte/lib/PencilSimpleIcon";
 	import TrashSimpleIcon from "phosphor-svelte/lib/TrashSimpleIcon";
 	import WarningCircleIcon from "phosphor-svelte/lib/WarningCircleIcon";
 
@@ -13,11 +16,13 @@
 		showReplies,
 		onViewReplies,
 		onDelete,
+		onEdit,
 	}: {
 		comment: Comment;
 		showReplies: boolean;
 		onViewReplies?: () => void;
 		onDelete: () => void;
+		onEdit: (newText: string) => void;
 	} = $props();
 
 	function handleClick(event: MouseEvent | KeyboardEvent) {
@@ -29,6 +34,7 @@
 	}
 
 	let confirmDeleteOpen = $state(false);
+	let editing = $state(false);
 </script>
 
 <div
@@ -50,6 +56,16 @@
 
 		<div class="flex flex-row items-center gap-2">
 			<div class="flex flex-row items-center gap-1 not-group-has-hover:hidden">
+				{#if comment.viewerCanUpdate}
+					<button
+						onclick={() => (editing = true)}
+						class="btn btn-ghost btn-square btn-xs"
+						title={$t("comment.edit")}
+					>
+						<PencilSimpleIcon class="size-4.5" />
+					</button>
+				{/if}
+
 				{#if comment.viewerCanDelete}
 					<button
 						onclick={() => (confirmDeleteOpen = true)}
@@ -79,7 +95,16 @@
 		</div>
 	{/if}
 
-	{#if comment.minimizedReason}
+	{#if editing}
+		<MessageBox
+			onSubmit={(text) => {
+				editing = false;
+				if (text !== comment.body) onEdit(text);
+			}}
+			prefilledText={comment.body}
+			noPadding={true}
+		/>
+	{:else if comment.minimizedReason}
 		<details>
 			<summary>
 				<span class="badge badge-warning">

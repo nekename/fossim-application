@@ -4,6 +4,7 @@
 
 	import {
 		deleteComment,
+		editComment,
 		fetchComments,
 		fetchReplies,
 		postComment,
@@ -131,6 +132,12 @@
 								comments = comments!.filter((c) => c.id !== comment.id);
 							}
 						}}
+						onEdit={async (newText) => {
+							Object.assign(
+								comment,
+								await editComment(community, comment.id, newText),
+							);
+						}}
 					/>
 				{/each}
 
@@ -208,6 +215,12 @@
 										openReplyComment = null;
 									}
 								}
+							}}
+							onEdit={async (newText) => {
+								Object.assign(
+									reply,
+									await editComment(community, reply.id, newText),
+								);
 							}}
 						/>
 					{/each}

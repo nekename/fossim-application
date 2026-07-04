@@ -114,6 +114,7 @@ export interface Comment {
 		viewerHasReacted: boolean;
 	}[];
 	viewerCanDelete?: boolean;
+	viewerCanUpdate?: boolean;
 }
 
 export interface Channel extends Comment {
@@ -220,6 +221,21 @@ export async function postReply(
 	if (community.forge === "github") {
 		const { postReply } = await import("./forges/github");
 		return await postReply(accessToken, channelId, commentId, body);
+	} else {
+		throw unsupportedForgeError(community.forge);
+	}
+}
+
+export async function editComment(
+	community: Community,
+	commentId: string,
+	body: string,
+): Promise<Comment> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { editComment } = await import("./forges/github");
+		return await editComment(accessToken, commentId, body);
 	} else {
 		throw unsupportedForgeError(community.forge);
 	}

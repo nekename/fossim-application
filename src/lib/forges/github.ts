@@ -188,6 +188,7 @@ export async function fetchComments(
 									viewerHasReacted
 								}
 								viewerCanDelete
+								viewerCanUpdate
 							}
 							pageInfo {
 								hasPreviousPage
@@ -247,6 +248,7 @@ export async function fetchReplies(
 									viewerHasReacted
 								}
 								viewerCanDelete
+								viewerCanUpdate
 							}
 							pageInfo {
 								hasPreviousPage
@@ -297,6 +299,7 @@ export async function postComment(
 							viewerHasReacted
 						}
 						viewerCanDelete
+						viewerCanUpdate
 					}
 				}
 			}
@@ -343,6 +346,7 @@ export async function postReply(
 							viewerHasReacted
 						}
 						viewerCanDelete
+						viewerCanUpdate
 					}
 				}
 			}
@@ -356,6 +360,46 @@ export async function postReply(
 	);
 
 	return postReplyRes.addDiscussionComment.comment;
+}
+
+export async function editComment(
+	accessToken: string,
+	commentId: string,
+	body: string,
+): Promise<Comment> {
+	const editCommentRes: GraphQlQueryResponseData = await graphql(
+		`
+			mutation ($commentId: ID!, $body: String!) {
+				updateDiscussionComment(input: { commentId: $commentId, body: $body }) {
+					comment {
+						id
+						author {
+							login
+						}
+						body
+						isAnswer
+						minimizedReason
+						publishedAt
+						includesCreatedEdit
+						reactionGroups {
+							content
+							createdAt
+							viewerHasReacted
+						}
+						viewerCanDelete
+						viewerCanUpdate
+					}
+				}
+			}
+		`,
+		{
+			commentId,
+			body,
+			headers: { authorization: `token ${accessToken}` },
+		},
+	);
+
+	return editCommentRes.updateDiscussionComment.comment;
 }
 
 export async function deleteComment(

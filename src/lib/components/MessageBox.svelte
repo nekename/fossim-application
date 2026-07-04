@@ -4,14 +4,31 @@
 
 	import DOMPurify from "dompurify";
 
-	let { onSubmit }: { onSubmit: (text: string) => void } = $props();
+	let {
+		onSubmit,
+		prefilledText,
+		noPadding,
+	}: {
+		onSubmit: (text: string) => void;
+		prefilledText?: string;
+		noPadding?: boolean;
+	} = $props();
 
-	let text = $state("");
+	// svelte-ignore state_referenced_locally
+	let text = $state(prefilledText || "");
 
 	let name = Math.random().toString(32).replace("0.", "");
+
+	let textarea: HTMLTextAreaElement | null = null;
+	$effect(() => {
+		if (prefilledText && prefilledText.trim() && textarea) {
+			textarea.focus();
+			textarea.selectionStart = textarea.value.length;
+		}
+	});
 </script>
 
-<div class="border-base-300 border-t p-4">
+<div class={[!noPadding && "border-base-300 border-t p-4"]}>
 	<div class="tabs tabs-lift relative flex w-full">
 		<input
 			type="radio"
@@ -25,12 +42,21 @@
 		>
 			<textarea
 				bind:value={text}
+				bind:this={textarea}
 				onkeydown={(e) => {
 					if (e.key === "Enter" && !e.shiftKey) {
 						e.preventDefault();
 						if (!text.trim()) return;
 						onSubmit(text);
 						text = "";
+					} else if (
+						prefilledText &&
+						prefilledText.trim() &&
+						e.key === "Escape"
+					) {
+						e.preventDefault();
+						text = prefilledText;
+						onSubmit(prefilledText);
 					}
 				}}
 				class="textarea bg-base-200 field-sizing-content h-auto w-full resize-none border-none p-4 focus:outline-none"
