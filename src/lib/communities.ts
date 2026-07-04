@@ -192,3 +192,34 @@ export async function fetchReplies(
 		throw unsupportedForgeError(community.forge);
 	}
 }
+
+export async function postComment(
+	community: Community,
+	channelId: string,
+	body: string,
+): Promise<Comment> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { postComment } = await import("./forges/github");
+		return await postComment(accessToken, channelId, body);
+	} else {
+		throw unsupportedForgeError(community.forge);
+	}
+}
+
+export async function postReply(
+	community: Community,
+	channelId: string,
+	commentId: string,
+	body: string,
+): Promise<Comment> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { postReply } = await import("./forges/github");
+		return await postReply(accessToken, channelId, commentId, body);
+	} else {
+		throw unsupportedForgeError(community.forge);
+	}
+}

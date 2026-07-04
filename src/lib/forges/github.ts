@@ -270,6 +270,90 @@ export async function fetchReplies(
 	};
 }
 
+export async function postComment(
+	accessToken: string,
+	channelId: string,
+	body: string,
+): Promise<Comment> {
+	const postCommentRes: GraphQlQueryResponseData = await graphql(
+		`
+			mutation ($channelId: ID!, $body: String!) {
+				addDiscussionComment(input: { discussionId: $channelId, body: $body }) {
+					comment {
+						id
+						author {
+							login
+						}
+						body
+						isAnswer
+						minimizedReason
+						publishedAt
+						includesCreatedEdit
+						reactionGroups {
+							content
+							createdAt
+							viewerHasReacted
+						}
+					}
+				}
+			}
+		`,
+		{
+			channelId,
+			body,
+			headers: { authorization: `token ${accessToken}` },
+		},
+	);
+
+	return postCommentRes.addDiscussionComment.comment;
+}
+
+export async function postReply(
+	accessToken: string,
+	channelId: string,
+	commentId: string,
+	body: string,
+): Promise<Comment> {
+	const postReplyRes: GraphQlQueryResponseData = await graphql(
+		`
+			mutation ($channelId: ID!, $commentId: ID!, $body: String!) {
+				addDiscussionComment(
+					input: {
+						discussionId: $channelId
+						replyToId: $commentId
+						body: $body
+					}
+				) {
+					comment {
+						id
+						author {
+							login
+						}
+						body
+						isAnswer
+						minimizedReason
+						publishedAt
+						includesCreatedEdit
+						reactionGroups {
+							content
+							createdAt
+							viewerHasReacted
+						}
+					}
+				}
+			}
+		`,
+		{
+			channelId,
+			commentId,
+			body,
+			headers: { authorization: `token ${accessToken}` },
+		},
+	);
+
+	return postReplyRes.addDiscussionComment.comment;
+}
+
 let emojis: Record<string, string> | null = null;
 export async function fetchEmojis(
 	accessToken?: string,

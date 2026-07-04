@@ -1,9 +1,12 @@
 <script lang="ts">
 	import CommentComponent from "$lib/components/Comment.svelte";
+	import MessageBox from "$lib/components/MessageBox.svelte";
 
 	import {
 		fetchComments,
 		fetchReplies,
+		postComment,
+		postReply,
 		type Channel,
 		type Comment,
 		type Community,
@@ -131,6 +134,13 @@
 				{/if}
 			{/if}
 		</div>
+
+		{#if !channel.locked && comments !== null && commentsHasPreviousPage !== null}
+			<MessageBox
+				onSubmit={async (text) =>
+					comments!.push(await postComment(community, channel.id, text))}
+			/>
+		{/if}
 	</div>
 
 	{#if openReplyComment}
@@ -175,6 +185,22 @@
 					{/if}
 				{/if}
 			</div>
+
+			{#if !channel.locked && replies[openReplyComment.id]?.length}
+				<MessageBox
+					onSubmit={async (text) => {
+						replies[openReplyComment!.id].push(
+							await postReply(
+								community,
+								channel.id,
+								openReplyComment!.id,
+								text,
+							),
+						);
+						openReplyComment!.replies!.totalCount++;
+					}}
+				/>
+			{/if}
 		</div>
 	{/if}
 {/if}
