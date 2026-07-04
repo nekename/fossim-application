@@ -118,6 +118,7 @@
 					<CommentComponent
 						{comment}
 						showReplies={true}
+						canReply={!channel.locked}
 						onViewReplies={() => (openReplyComment = comment)}
 						onDelete={async () => {
 							await deleteComment(community, comment.id);
@@ -138,6 +139,7 @@
 								await editComment(community, comment.id, newText),
 							);
 						}}
+						onReply={() => (openReplyComment = comment)}
 					/>
 				{/each}
 
@@ -181,7 +183,7 @@
 			<div
 				class="bg-base-100 flex h-full flex-col-reverse gap-4 overflow-scroll p-4"
 			>
-				{#if !replies[openReplyComment.id]?.length}
+				{#if replies[openReplyComment.id] === undefined || replies[openReplyComment.id] === null || repliesHasPreviousPage[openReplyComment.id] === undefined || repliesHasPreviousPage[openReplyComment.id] === null}
 					<div class="flex h-full items-center justify-center">
 						<span class="loading loading-ring loading-xl"></span>
 					</div>
@@ -192,6 +194,7 @@
 						<CommentComponent
 							comment={reply}
 							showReplies={false}
+							canReply={false}
 							onDelete={async () => {
 								await deleteComment(community, reply.id);
 								delete replies[reply.id];
@@ -240,7 +243,7 @@
 				{/if}
 			</div>
 
-			{#if !channel.locked && replies[openReplyComment.id]?.length}
+			{#if !channel.locked && replies[openReplyComment.id] !== undefined && replies[openReplyComment.id] !== null && repliesHasPreviousPage[openReplyComment.id] !== undefined && repliesHasPreviousPage[openReplyComment.id] !== null}
 				<MessageBox
 					onSubmit={async (text) => {
 						replies[openReplyComment!.id].push(

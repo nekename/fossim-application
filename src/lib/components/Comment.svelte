@@ -6,6 +6,7 @@
 	import { marked } from "$lib/marked";
 
 	import DOMPurify from "dompurify";
+	import ArrowBendUpLeftIcon from "phosphor-svelte/lib/ArrowBendUpLeftIcon";
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
 	import PencilSimpleIcon from "phosphor-svelte/lib/PencilSimpleIcon";
 	import TrashSimpleIcon from "phosphor-svelte/lib/TrashSimpleIcon";
@@ -14,15 +15,19 @@
 	let {
 		comment,
 		showReplies,
+		canReply,
 		onViewReplies,
 		onDelete,
 		onEdit,
+		onReply,
 	}: {
 		comment: Comment;
 		showReplies: boolean;
+		canReply: boolean;
 		onViewReplies?: () => void;
 		onDelete: () => void;
 		onEdit: (newText: string) => void;
+		onReply?: () => void;
 	} = $props();
 
 	function handleClick(event: MouseEvent | KeyboardEvent) {
@@ -56,6 +61,16 @@
 
 		<div class="flex flex-row items-center gap-2">
 			<div class="flex flex-row items-center gap-1 not-group-has-hover:hidden">
+				{#if canReply}
+					<button
+						onclick={onReply}
+						class="btn btn-ghost btn-square btn-xs"
+						title={$t("comment.reply")}
+					>
+						<ArrowBendUpLeftIcon class="size-4.5" />
+					</button>
+				{/if}
+
 				{#if comment.viewerCanUpdate}
 					<button
 						onclick={() => (editing = true)}
