@@ -4,6 +4,9 @@
 }
 
 @import "highlight.js/styles/github-dark.css";
+.hljs {
+	white-space: pre-wrap;
+}
 
 button:focus:not(:focus-visible),
 select:focus:not(:focus-visible),
