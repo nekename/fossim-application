@@ -102,7 +102,7 @@
 		<div
 			class="bg-base-100 flex h-full flex-col-reverse gap-4 overflow-scroll p-4"
 		>
-			{#if !comments?.length}
+			{#if comments === null || commentsHasPreviousPage === null}
 				<div class="flex h-full items-center justify-center">
 					<span class="loading loading-ring loading-xl"></span>
 				</div>
