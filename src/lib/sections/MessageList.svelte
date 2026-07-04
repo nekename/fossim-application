@@ -3,7 +3,6 @@
 
 	import {
 		fetchComments,
-		fetchEmojis,
 		fetchReplies,
 		type Channel,
 		type Comment,
@@ -11,14 +10,8 @@
 	} from "$lib/communities";
 	import { t } from "$lib/i18n";
 
-	import hljs from "highlight.js";
-	import { Marked } from "marked";
-	import markedAlert from "marked-alert";
-	import { markedEmoji } from "marked-emoji";
-	import { markedHighlight } from "marked-highlight";
 	import ArrowSquareOutIcon from "phosphor-svelte/lib/ArrowSquareOutIcon";
 	import XCircleIcon from "phosphor-svelte/lib/XCircleIcon";
-	import { onMount } from "svelte";
 	import { inview } from "svelte-inview";
 
 	let {
@@ -34,34 +27,6 @@
 	let comments: Comment[] | null = $state(null);
 	let commentsHasPreviousPage: boolean | null = $state(null);
 	let commentsStartCursor: string | null = $state(null);
-
-	const marked = new Marked();
-	onMount(async () => {
-		const renderer = new marked.Renderer();
-		renderer.link = function (token) {
-			const rendered = marked.Renderer.prototype.link.call(this, token);
-			return rendered.replace("<a", `<a target="_blank" `);
-		};
-		marked.use({ renderer });
-		marked.use(markedAlert());
-		marked.use(
-			markedEmoji({
-				emojis: await fetchEmojis(community),
-				renderer: (token) =>
-					`<img alt="${token.emoji}" src="${token.emoji}" style="display: inline; width: 1.2em; height: 1.2em; margin: 0; vertical-align: text-bottom;" />`,
-			}),
-		);
-		marked.use(
-			markedHighlight({
-				emptyLangClass: "hljs",
-				langPrefix: "hljs language-",
-				highlight(code, lang) {
-					const language = hljs.getLanguage(lang) ? lang : "plaintext";
-					return hljs.highlight(code, { language }).value;
-				},
-			}),
-		);
-	});
 
 	$effect(() => {
 		if (!comments && show) {
@@ -147,7 +112,6 @@
 					.reverse() as comment (comment.id)}
 					<CommentComponent
 						{comment}
-						{marked}
 						showReplies={true}
 						onViewReplies={() => (openReplyComment = comment)}
 					/>
@@ -194,7 +158,7 @@
 					{#each (repliesHasPreviousPage[openReplyComment.id] ? [] : [openReplyComment])
 						.concat(replies[openReplyComment.id])
 						.reverse() as reply (reply.id)}
-						<CommentComponent comment={reply} {marked} showReplies={false} />
+						<CommentComponent comment={reply} showReplies={false} />
 					{/each}
 
 					{#if repliesHasPreviousPage[openReplyComment.id]}

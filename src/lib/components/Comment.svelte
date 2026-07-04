@@ -1,20 +1,18 @@
 <script lang="ts">
 	import { type Comment } from "$lib/communities";
 	import { t } from "$lib/i18n";
+	import { marked } from "$lib/marked";
 
 	import DOMPurify from "dompurify";
-	import { type Marked } from "marked";
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
 	import WarningCircleIcon from "phosphor-svelte/lib/WarningCircleIcon";
 
 	let {
 		comment,
-		marked,
 		showReplies,
 		onViewReplies,
 	}: {
 		comment: Comment;
-		marked: Marked;
 		showReplies: boolean;
 		onViewReplies?: () => void;
 	} = $props();

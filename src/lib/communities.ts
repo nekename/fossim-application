@@ -192,16 +192,3 @@ export async function fetchReplies(
 		throw unsupportedForgeError(community.forge);
 	}
 }
-
-export async function fetchEmojis(
-	community: Community,
-): Promise<Record<string, string>> {
-	const accessToken = await getAccessToken(community);
-
-	if (community.forge === "github") {
-		const { fetchEmojis } = await import("./forges/github");
-		return await fetchEmojis(accessToken);
-	} else {
-		throw unsupportedForgeError(community.forge);
-	}
-}

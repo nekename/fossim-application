@@ -272,11 +272,11 @@ export async function fetchReplies(
 
 let emojis: Record<string, string> | null = null;
 export async function fetchEmojis(
-	accessToken: string,
+	accessToken?: string,
 ): Promise<Record<string, string>> {
 	if (emojis) return emojis;
 	const emojisRes = await fetch("https://api.github.com/emojis", {
-		headers: { authorization: `token ${accessToken}` },
+		headers: accessToken ? { authorization: `token ${accessToken}` } : {},
 	});
 	if (!emojisRes.ok) return {};
 	emojis = await emojisRes.json();
