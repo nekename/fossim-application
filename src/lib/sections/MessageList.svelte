@@ -3,6 +3,7 @@
 	import MessageBox from "$lib/components/MessageBox.svelte";
 
 	import {
+		deleteComment,
 		fetchComments,
 		fetchReplies,
 		postComment,
@@ -117,6 +118,19 @@
 						{comment}
 						showReplies={true}
 						onViewReplies={() => (openReplyComment = comment)}
+						onDelete={async () => {
+							await deleteComment(community, comment.id);
+							delete replies[comment.id];
+							delete repliesHasPreviousPage[comment.id];
+							delete repliesStartCursor[comment.id];
+							if (comment.replies?.totalCount) {
+								comment.body = "";
+								if (comment.isAnswer) comment.isAnswer = false;
+								if (comment.viewerCanDelete) comment.viewerCanDelete = false;
+							} else {
+								comments = comments!.filter((c) => c.id !== comment.id);
+							}
+						}}
 					/>
 				{/each}
 
@@ -168,7 +182,34 @@
 					{#each (repliesHasPreviousPage[openReplyComment.id] ? [] : [openReplyComment])
 						.concat(replies[openReplyComment.id])
 						.reverse() as reply (reply.id)}
-						<CommentComponent comment={reply} showReplies={false} />
+						<CommentComponent
+							comment={reply}
+							showReplies={false}
+							onDelete={async () => {
+								await deleteComment(community, reply.id);
+								delete replies[reply.id];
+								delete repliesHasPreviousPage[reply.id];
+								delete repliesStartCursor[reply.id];
+								if (reply.replies?.totalCount) {
+									reply.body = "";
+									if (reply.isAnswer) reply.isAnswer = false;
+									if (reply.viewerCanDelete) reply.viewerCanDelete = false;
+								} else {
+									replies[openReplyComment!.id] = replies[
+										openReplyComment!.id
+									].filter((r) => r.id !== reply.id);
+									openReplyComment!.replies!.totalCount--;
+									if (openReplyComment!.replies!.totalCount === 0) {
+										if (!openReplyComment!.body) {
+											comments = comments!.filter(
+												(c) => c.id !== openReplyComment!.id,
+											);
+										}
+										openReplyComment = null;
+									}
+								}
+							}}
+						/>
 					{/each}
 
 					{#if repliesHasPreviousPage[openReplyComment.id]}

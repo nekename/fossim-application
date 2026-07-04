@@ -187,6 +187,7 @@ export async function fetchComments(
 									createdAt
 									viewerHasReacted
 								}
+								viewerCanDelete
 							}
 							pageInfo {
 								hasPreviousPage
@@ -245,6 +246,7 @@ export async function fetchReplies(
 									createdAt
 									viewerHasReacted
 								}
+								viewerCanDelete
 							}
 							pageInfo {
 								hasPreviousPage
@@ -294,6 +296,7 @@ export async function postComment(
 							createdAt
 							viewerHasReacted
 						}
+						viewerCanDelete
 					}
 				}
 			}
@@ -339,6 +342,7 @@ export async function postReply(
 							createdAt
 							viewerHasReacted
 						}
+						viewerCanDelete
 					}
 				}
 			}
@@ -352,6 +356,25 @@ export async function postReply(
 	);
 
 	return postReplyRes.addDiscussionComment.comment;
+}
+
+export async function deleteComment(
+	accessToken: string,
+	commentId: string,
+): Promise<void> {
+	await graphql(
+		`
+			mutation ($commentId: ID!) {
+				deleteDiscussionComment(input: { id: $commentId }) {
+					clientMutationId
+				}
+			}
+		`,
+		{
+			commentId,
+			headers: { authorization: `token ${accessToken}` },
+		},
+	);
 }
 
 let emojis: Record<string, string> | null = null;

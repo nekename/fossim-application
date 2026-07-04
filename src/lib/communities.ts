@@ -113,6 +113,7 @@ export interface Comment {
 		createdAt: string | null;
 		viewerHasReacted: boolean;
 	}[];
+	viewerCanDelete?: boolean;
 }
 
 export interface Channel extends Comment {
@@ -219,6 +220,20 @@ export async function postReply(
 	if (community.forge === "github") {
 		const { postReply } = await import("./forges/github");
 		return await postReply(accessToken, channelId, commentId, body);
+	} else {
+		throw unsupportedForgeError(community.forge);
+	}
+}
+
+export async function deleteComment(
+	community: Community,
+	commentId: string,
+): Promise<void> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { deleteComment } = await import("./forges/github");
+		return await deleteComment(accessToken, commentId);
 	} else {
 		throw unsupportedForgeError(community.forge);
 	}

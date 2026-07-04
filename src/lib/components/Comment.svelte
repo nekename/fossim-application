@@ -5,16 +5,19 @@
 
 	import DOMPurify from "dompurify";
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
+	import TrashSimpleIcon from "phosphor-svelte/lib/TrashSimpleIcon";
 	import WarningCircleIcon from "phosphor-svelte/lib/WarningCircleIcon";
 
 	let {
 		comment,
 		showReplies,
 		onViewReplies,
+		onDelete,
 	}: {
 		comment: Comment;
 		showReplies: boolean;
 		onViewReplies?: () => void;
+		onDelete: () => void;
 	} = $props();
 
 	function handleClick(event: MouseEvent | KeyboardEvent) {
@@ -24,11 +27,13 @@
 			window.open(link.href);
 		}
 	}
+
+	let confirmDeleteOpen = $state(false);
 </script>
 
 <div
 	class={[
-		"bg-base-200 rounded-lg p-4",
+		"bg-base-200 group rounded-lg p-4",
 		comment.isAnswer &&
 			"border-success drop-shadow-success border-2 drop-shadow-sm",
 	]}
@@ -43,12 +48,26 @@
 			<span class="font-semibold">{comment.author.login}</span>
 		</div>
 
-		<span class="text-base-content/50 text-sm">
-			{new Date(comment.publishedAt).toLocaleString()}
-			{#if comment.includesCreatedEdit}
-				<span>({$t("comment.edited")})</span>
-			{/if}
-		</span>
+		<div class="flex flex-row items-center gap-2">
+			<div class="flex flex-row items-center gap-1 not-group-has-hover:hidden">
+				{#if comment.viewerCanDelete}
+					<button
+						onclick={() => (confirmDeleteOpen = true)}
+						class="btn btn-ghost btn-square btn-xs"
+						title={$t("comment.delete")}
+					>
+						<TrashSimpleIcon class="size-4.5" />
+					</button>
+				{/if}
+			</div>
+
+			<span class="text-base-content/50 text-sm">
+				{new Date(comment.publishedAt).toLocaleString()}
+				{#if comment.includesCreatedEdit}
+					<span>({$t("comment.edited")})</span>
+				{/if}
+			</span>
+		</div>
 	</div>
 
 	{#if comment.isAnswer}
@@ -77,7 +96,7 @@
 				onclick={handleClick}
 				onkeyup={handleClick}
 			>
-				{#await marked.parse(comment.body, { breaks: true }) then parsedBody}
+				{#await marked.parse( comment.body || `*${$t("comment.was_deleted")}*`, { breaks: true }, ) then parsedBody}
 					{@html DOMPurify.sanitize(parsedBody)}
 				{/await}
 			</div>
@@ -89,7 +108,7 @@
 			onclick={handleClick}
 			onkeyup={handleClick}
 		>
-			{#await marked.parse(comment.body, { breaks: true }) then parsedBody}
+			{#await marked.parse( comment.body || `*${$t("comment.was_deleted")}*`, { breaks: true }, ) then parsedBody}
 				{@html DOMPurify.sanitize(parsedBody)}
 			{/await}
 		</div>
@@ -136,3 +155,36 @@
 		</button>
 	{/if}
 </div>
+
+{#if confirmDeleteOpen}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h3 class="text-lg font-bold">{$t("comment.confirm_delete_title")}</h3>
+			<p class="my-3">{$t("comment.confirm_delete_description")}</p>
+			<div class="modal-action">
+				<button
+					onclick={() => (confirmDeleteOpen = false)}
+					class="btn btn-ghost"
+				>
+					{$t("dialog.cancel")}
+				</button>
+				<button
+					onclick={() => {
+						onDelete();
+						confirmDeleteOpen = false;
+					}}
+					class="btn btn-error"
+				>
+					{$t("comment.delete")}
+				</button>
+			</div>
+		</div>
+
+		<form method="dialog" class="modal-backdrop">
+			<!-- Automatically close dialog when clicking outside -->
+			<button onclick={() => (confirmDeleteOpen = false)}>
+				{$t("dialog.cancel")}
+			</button>
+		</form>
+	</div>
+{/if}
