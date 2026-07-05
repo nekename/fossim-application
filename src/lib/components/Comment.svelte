@@ -8,6 +8,7 @@
 	import DOMPurify from "dompurify";
 	import ArrowBendUpLeftIcon from "phosphor-svelte/lib/ArrowBendUpLeftIcon";
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
+	import ClipboardIcon from "phosphor-svelte/lib/ClipboardIcon";
 	import PencilSimpleIcon from "phosphor-svelte/lib/PencilSimpleIcon";
 	import SmileyIcon from "phosphor-svelte/lib/SmileyIcon";
 	import TrashSimpleIcon from "phosphor-svelte/lib/TrashSimpleIcon";
@@ -46,6 +47,7 @@
 	let confirmDeleteOpen = $state(false);
 	let editing = $state(false);
 	let reactOpen: [number, number] | null = $state(null);
+	let copied = $state(false);
 </script>
 
 <div
@@ -96,6 +98,22 @@
 						<PencilSimpleIcon class="size-4.5" />
 					</button>
 				{/if}
+
+				<button
+					onclick={() => {
+						navigator.clipboard.writeText(comment.body);
+						copied = true;
+						setTimeout(() => (copied = false), 2000);
+					}}
+					class="btn btn-ghost btn-square btn-xs"
+					title={$t("comment.copy_text")}
+				>
+					{#if copied}
+						<CheckCircleIcon class="size-4.5" />
+					{:else}
+						<ClipboardIcon class="size-4.5" />
+					{/if}
+				</button>
 
 				{#if comment.viewerCanDelete}
 					<button
