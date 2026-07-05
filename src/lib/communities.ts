@@ -115,6 +115,7 @@ export interface Comment {
 	}[];
 	viewerCanDelete?: boolean;
 	viewerCanUpdate?: boolean;
+	viewerCanReact?: boolean;
 }
 
 export interface Channel extends Comment {
@@ -250,6 +251,40 @@ export async function deleteComment(
 	if (community.forge === "github") {
 		const { deleteComment } = await import("./forges/github");
 		return await deleteComment(accessToken, commentId);
+	} else {
+		throw unsupportedForgeError(community.forge);
+	}
+}
+
+export async function addReaction(
+	community: Community,
+	commentId: string,
+	reaction: string,
+): Promise<
+	{ content: string; createdAt: string | null; viewerHasReacted: boolean }[]
+> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { addReaction } = await import("./forges/github");
+		return await addReaction(accessToken, commentId, reaction);
+	} else {
+		throw unsupportedForgeError(community.forge);
+	}
+}
+
+export async function removeReaction(
+	community: Community,
+	commentId: string,
+	reaction: string,
+): Promise<
+	{ content: string; createdAt: string | null; viewerHasReacted: boolean }[]
+> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { removeReaction } = await import("./forges/github");
+		return await removeReaction(accessToken, commentId, reaction);
 	} else {
 		throw unsupportedForgeError(community.forge);
 	}

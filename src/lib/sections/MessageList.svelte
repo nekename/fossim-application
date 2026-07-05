@@ -3,12 +3,14 @@
 	import MessageBox from "$lib/components/MessageBox.svelte";
 
 	import {
+		addReaction,
 		deleteComment,
 		editComment,
 		fetchComments,
 		fetchReplies,
 		postComment,
 		postReply,
+		removeReaction,
 		type Channel,
 		type Comment,
 		type Community,
@@ -140,6 +142,20 @@
 							);
 						}}
 						onReply={() => (openReplyComment = comment)}
+						onReact={async (reaction) => {
+							comment.reactionGroups = await addReaction(
+								community,
+								comment.id,
+								reaction,
+							);
+						}}
+						onUnreact={async (reaction) => {
+							comment.reactionGroups = await removeReaction(
+								community,
+								comment.id,
+								reaction,
+							);
+						}}
 					/>
 				{/each}
 
@@ -223,6 +239,20 @@
 								Object.assign(
 									reply,
 									await editComment(community, reply.id, newText),
+								);
+							}}
+							onReact={async (reaction) => {
+								reply.reactionGroups = await addReaction(
+									community,
+									reply.id,
+									reaction,
+								);
+							}}
+							onUnreact={async (reaction) => {
+								reply.reactionGroups = await removeReaction(
+									community,
+									reply.id,
+									reaction,
 								);
 							}}
 						/>

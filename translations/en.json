@@ -14,6 +14,8 @@
 	"comment.edit": "Edit",
 	"comment.edited": "edited",
 	"comment.minimized_reason": "Minimized as {{reason}}",
+	"comment.react": "React",
+	"comment.react_with": "React with {{reaction}}",
 	"comment.reply": "Reply",
 	"comment.view_replies": "View {{count}} replies",
 	"comment.view_reply": "View 1 reply",

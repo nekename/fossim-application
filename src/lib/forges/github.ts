@@ -189,6 +189,7 @@ export async function fetchComments(
 								}
 								viewerCanDelete
 								viewerCanUpdate
+								viewerCanReact
 							}
 							pageInfo {
 								hasPreviousPage
@@ -249,6 +250,7 @@ export async function fetchReplies(
 								}
 								viewerCanDelete
 								viewerCanUpdate
+								viewerCanReact
 							}
 							pageInfo {
 								hasPreviousPage
@@ -300,6 +302,7 @@ export async function postComment(
 						}
 						viewerCanDelete
 						viewerCanUpdate
+						viewerCanReact
 					}
 				}
 			}
@@ -347,6 +350,7 @@ export async function postReply(
 						}
 						viewerCanDelete
 						viewerCanUpdate
+						viewerCanReact
 					}
 				}
 			}
@@ -388,6 +392,7 @@ export async function editComment(
 						}
 						viewerCanDelete
 						viewerCanUpdate
+						viewerCanReact
 					}
 				}
 			}
@@ -419,6 +424,64 @@ export async function deleteComment(
 			headers: { authorization: `token ${accessToken}` },
 		},
 	);
+}
+
+export async function addReaction(
+	accessToken: string,
+	commentId: string,
+	reaction: string,
+): Promise<
+	{ content: string; createdAt: string | null; viewerHasReacted: boolean }[]
+> {
+	const reactToCommentRes: GraphQlQueryResponseData = await graphql(
+		`
+			mutation ($commentId: ID!, $reaction: ReactionContent!) {
+				addReaction(input: { subjectId: $commentId, content: $reaction }) {
+					reactionGroups {
+						content
+						createdAt
+						viewerHasReacted
+					}
+				}
+			}
+		`,
+		{
+			commentId,
+			reaction,
+			headers: { authorization: `token ${accessToken}` },
+		},
+	);
+
+	return reactToCommentRes.addReaction.reactionGroups;
+}
+
+export async function removeReaction(
+	accessToken: string,
+	commentId: string,
+	reaction: string,
+): Promise<
+	{ content: string; createdAt: string | null; viewerHasReacted: boolean }[]
+> {
+	const removeReactionRes: GraphQlQueryResponseData = await graphql(
+		`
+			mutation ($commentId: ID!, $reaction: ReactionContent!) {
+				removeReaction(input: { subjectId: $commentId, content: $reaction }) {
+					reactionGroups {
+						content
+						createdAt
+						viewerHasReacted
+					}
+				}
+			}
+		`,
+		{
+			commentId,
+			reaction,
+			headers: { authorization: `token ${accessToken}` },
+		},
+	);
+
+	return removeReactionRes.removeReaction.reactionGroups;
 }
 
 let emojis: Record<string, string> | null = null;

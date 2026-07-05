@@ -9,6 +9,7 @@
 	import ArrowBendUpLeftIcon from "phosphor-svelte/lib/ArrowBendUpLeftIcon";
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
 	import PencilSimpleIcon from "phosphor-svelte/lib/PencilSimpleIcon";
+	import SmileyIcon from "phosphor-svelte/lib/SmileyIcon";
 	import TrashSimpleIcon from "phosphor-svelte/lib/TrashSimpleIcon";
 	import WarningCircleIcon from "phosphor-svelte/lib/WarningCircleIcon";
 
@@ -20,6 +21,8 @@
 		onDelete,
 		onEdit,
 		onReply,
+		onReact,
+		onUnreact,
 	}: {
 		comment: Comment;
 		showReplies: boolean;
@@ -28,6 +31,8 @@
 		onDelete: () => void;
 		onEdit: (newText: string) => void;
 		onReply?: () => void;
+		onReact: (reaction: string) => void;
+		onUnreact: (reaction: string) => void;
 	} = $props();
 
 	function handleClick(event: MouseEvent | KeyboardEvent) {
@@ -40,6 +45,7 @@
 
 	let confirmDeleteOpen = $state(false);
 	let editing = $state(false);
+	let reactOpen: [number, number] | null = $state(null);
 </script>
 
 <div
@@ -61,6 +67,16 @@
 
 		<div class="flex flex-row items-center gap-2">
 			<div class="flex flex-row items-center gap-1 not-group-has-hover:hidden">
+				{#if comment.viewerCanReact}
+					<button
+						onclick={(event) => (reactOpen = [event.clientX, event.clientY])}
+						class="btn btn-ghost btn-square btn-xs"
+						title={$t("comment.react")}
+					>
+						<SmileyIcon class="size-4.5" />
+					</button>
+				{/if}
+
 				{#if canReply}
 					<button
 						onclick={onReply}
@@ -157,9 +173,16 @@
 	<div class="flex flex-row gap-2">
 		{#each comment.reactionGroups as reactionGroup (reactionGroup.content)}
 			{#if reactionGroup.createdAt}
-				<div
+				<button
+					onclick={() => {
+						if (reactionGroup.viewerHasReacted) {
+							onUnreact(reactionGroup.content);
+						} else {
+							onReact(reactionGroup.content);
+						}
+					}}
 					class={[
-						"bg-neutral border-base-100 mt-3 rounded-lg border px-2 py-1 text-sm",
+						"bg-neutral border-base-100 mt-3 cursor-pointer rounded-lg border px-2 py-1 text-sm",
 						reactionGroup.viewerHasReacted && "bg-primary border-secondary",
 					]}
 				>
@@ -180,7 +203,7 @@
 												: reactionGroup.content === "EYES"
 													? "👀"
 													: reactionGroup.content}
-				</div>
+				</button>
 			{/if}
 		{/each}
 	</div>
@@ -227,4 +250,34 @@
 			</button>
 		</form>
 	</div>
+{/if}
+
+{#if reactOpen}
+	<dialog
+		open
+		class="absolute z-50"
+		style={`top: ${reactOpen[1]}px; left: ${reactOpen[0]}px; transform: translate(-50%, -50%);`}
+		onmouseleave={() => (reactOpen = null)}
+	>
+		<div class="card compact bg-base-100 shadow">
+			<div class="card-body flex flex-row gap-2 p-2">
+				{#each [{ emoji: "👍", content: "THUMBS_UP" }, { emoji: "👎", content: "THUMBS_DOWN" }, { emoji: "😄", content: "LAUGH" }, { emoji: "🎉", content: "HOORAY" }, { emoji: "😕", content: "CONFUSED" }, { emoji: "❤️", content: "HEART" }, { emoji: "🚀", content: "ROCKET" }, { emoji: "👀", content: "EYES" }] as reaction}
+					{#if !comment.reactionGroups.find((rg) => rg.content === reaction.content)?.viewerHasReacted}
+						<button
+							onclick={() => {
+								onReact(reaction.content);
+								reactOpen = null;
+							}}
+							class="btn btn-ghost btn-square btn-xs"
+							title={$t("comment.react_with", {
+								reaction: reaction.content.toLowerCase().replace(/_/g, " "),
+							})}
+						>
+							{reaction.emoji}
+						</button>
+					{/if}
+				{/each}
+			</div>
+		</div>
+	</dialog>
 {/if}
