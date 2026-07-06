@@ -71,6 +71,9 @@ export async function leaveCommunity(community: Community): Promise<void> {
 	const clientId = await fetchClientId(host, community.forge);
 
 	await db.communities.delete([community.forge, community.path]);
+	await db.seqCounters
+		.where({ forge: community.forge, path: community.path })
+		.delete();
 
 	for (const otherCommunity of await db.communities
 		.where("forge")

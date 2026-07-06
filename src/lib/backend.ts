@@ -13,8 +13,13 @@ export async function makeApiRequest(
 	host: string,
 	path: string,
 	method: string = "GET",
+	body?: any,
 ): Promise<any> {
-	const response = await fetch(host + path, { method });
+	const response = await fetch(host + path, {
+		method,
+		headers: body ? { "Content-Type": "application/json" } : undefined,
+		body: body ? JSON.stringify(body) : undefined,
+	});
 	if (!response.ok) {
 		let message = response.statusText;
 		try {
@@ -238,4 +243,26 @@ export async function listenForUpdates(
 			}
 		}
 	};
+}
+
+export interface SeqCounter {
+	forge: string;
+	path: string;
+	channelId: string;
+	seqCount: number;
+}
+
+export async function fetchSeqCounters(
+	community: Community,
+	channelIds: string[],
+): Promise<{ [channelId: string]: number }> {
+	const host = await fetchCommunityHost(community);
+	return (
+		await makeApiRequest(
+			host,
+			`/api/channels/${community.forge}/${community.path}/seq_counters`,
+			"POST",
+			{ channel_ids: channelIds },
+		)
+	).seq_counters;
 }

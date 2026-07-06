@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		fetchSeqCounters,
 		listenForUpdates,
 		type ChannelUpdate,
 		type ThreadUpdate,
@@ -12,6 +13,7 @@
 		type Community,
 		type Thread,
 	} from "$lib/communities";
+	import { db, liveQuery } from "$lib/db";
 	import { t } from "$lib/i18n";
 
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
@@ -42,7 +44,38 @@
 	let threadsHasNextPage: boolean | null = $state(null);
 	let threadsEndCursor: string | null = $state(null);
 
-	function handleChannelUpdate(update: ChannelUpdate, channel: Channel) {
+	const storedSeqCounters = liveQuery(async () => {
+		const map: { [channelId: string]: number } = {};
+		await db.seqCounters
+			.where({ forge: community.forge, path: community.path })
+			.each((r) => {
+				map[r.channelId] = r.seqCount;
+			});
+		return map;
+	});
+	let currentSeqCounters: { [channelId: string]: number } | null = $state(null);
+
+	async function initStoredSeqCounter(channelId: string, seqCount: number) {
+		if (
+			!(await db.seqCounters
+				.where({
+					forge: community.forge,
+					path: community.path,
+					channelId,
+				})
+				.first())
+		) {
+			// We haven't seen this channel/thread before, so we mark all existing comments as read.
+			await db.seqCounters.add({
+				forge: community.forge,
+				path: community.path,
+				channelId,
+				seqCount,
+			});
+		}
+	}
+
+	async function handleChannelUpdate(update: ChannelUpdate, channel: Channel) {
 		if (update === "created") {
 			channels!.splice(
 				(channels?.findLastIndex(
@@ -51,9 +84,23 @@
 				0,
 				channel,
 			);
+
+			currentSeqCounters![channel.id] = (
+				await fetchSeqCounters(community, [channel.id])
+			)[channel.id];
+			await initStoredSeqCounter(channel.id, currentSeqCounters![channel.id]);
 		} else if (update === "deleted") {
 			const index = channels?.findIndex((c) => c.id === channel.id);
 			if (index !== undefined && index !== -1) channels!.splice(index, 1);
+
+			await db.seqCounters
+				.where({
+					forge: community.forge,
+					path: community.path,
+					channelId: channel.id,
+				})
+				.delete();
+			delete currentSeqCounters![channel.id];
 		} else if (update === "edited") {
 			const index = channels?.findIndex((c) => c.id === channel.id);
 			if (index !== undefined && index !== -1) {
@@ -69,12 +116,26 @@
 		}
 	}
 
-	function handleThreadUpdate(update: ThreadUpdate, thread: Thread) {
+	async function handleThreadUpdate(update: ThreadUpdate, thread: Thread) {
 		if (update === "created") {
 			threads!.unshift(thread);
+
+			currentSeqCounters![thread.id] = (
+				await fetchSeqCounters(community, [thread.id])
+			)[thread.id];
+			await initStoredSeqCounter(thread.id, currentSeqCounters![thread.id]);
 		} else if (update === "deleted") {
 			const index = threads?.findIndex((t) => t.id === thread.id);
 			if (index !== undefined && index !== -1) threads!.splice(index, 1);
+
+			await db.seqCounters
+				.where({
+					forge: community.forge,
+					path: community.path,
+					channelId: thread.id,
+				})
+				.delete();
+			delete currentSeqCounters![thread.id];
 		} else if (update === "edited") {
 			const index = threads?.findIndex((t) => t.id === thread.id);
 			if (index !== undefined && index !== -1) {
@@ -106,6 +167,21 @@
 						detail: { update, comment, parentId },
 					}),
 				);
+				if (
+					update === "created" &&
+					parentId === null &&
+					currentSeqCounters?.[channelId] !== undefined
+				) {
+					currentSeqCounters![channelId]++;
+					if (selectedChannel === channelId) {
+						db.seqCounters.put({
+							forge: community.forge,
+							path: community.path,
+							channelId,
+							seqCount: currentSeqCounters![channelId],
+						});
+					}
+				}
 			},
 			async () => {
 				try {
@@ -125,11 +201,31 @@
 			threadsHasNextPage = threadsRes.hasNextPage;
 			threadsEndCursor = threadsRes.endCursor;
 
+			currentSeqCounters = await fetchSeqCounters(community, [
+				...channels.map((c) => c.id),
+				...threads.map((t) => t.id),
+			]);
+			for (const [channelId, seqCount] of Object.entries(currentSeqCounters)) {
+				await initStoredSeqCounter(channelId, seqCount);
+			}
+
 			await listen();
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : String(error);
 		}
 	});
+
+	async function selectChannel(channelId: string) {
+		selectedChannel = channelId;
+		if (currentSeqCounters?.[channelId] !== undefined) {
+			await db.seqCounters.put({
+				forge: community.forge,
+				path: community.path,
+				channelId,
+				seqCount: currentSeqCounters[channelId],
+			});
+		}
+	}
 
 	async function loadMoreThreads() {
 		try {
@@ -188,16 +284,43 @@
 		{:else}
 			{#each channels as channel}
 				<button
-					onclick={() => (selectedChannel = channel.id)}
-					class="btn btn-ghost w-full justify-start px-1.5"
+					onclick={() => selectChannel(channel.id)}
+					class="btn btn-ghost flex w-full flex-row justify-between px-1.5"
 					class:bg-primary={selectedChannel === channel.id}
 				>
-					{#if channel.locked}
-						<LockSimpleIcon class="mr-1 size-4.5 min-w-4.5" />
-					{:else}
-						<HashStraightIcon class="mr-1 size-4.5 min-w-4.5" />
+					<div
+						class={[
+							"flex w-full flex-row items-center gap-2.5",
+							$storedSeqCounters &&
+								currentSeqCounters &&
+								$storedSeqCounters[channel.id] !== undefined &&
+								currentSeqCounters[channel.id] !== undefined &&
+								$storedSeqCounters[channel.id] <
+									currentSeqCounters[channel.id] &&
+								"w-[calc(100%-2rem)]!",
+						]}
+					>
+						{#if channel.locked}
+							<LockSimpleIcon class="size-4.5 min-w-4.5" />
+						{:else}
+							<HashStraightIcon class="size-4.5 min-w-4.5" />
+						{/if}
+						<span class="truncate font-medium">{channel.title}</span>
+					</div>
+
+					{#if $storedSeqCounters && currentSeqCounters && $storedSeqCounters[channel.id] !== undefined && currentSeqCounters[channel.id] !== undefined}
+						{@const diff =
+							currentSeqCounters[channel.id] - $storedSeqCounters[channel.id]}
+						{#if diff}
+							<span class="badge badge-sm badge-primary">
+								{#if diff < 100}
+									{diff}
+								{:else}
+									:)
+								{/if}
+							</span>
+						{/if}
 					{/if}
-					<span class="truncate font-medium">{channel.title}</span>
 				</button>
 			{/each}
 		{/if}
@@ -212,20 +335,46 @@
 		{:else}
 			{#each threads as thread}
 				<button
-					onclick={() => (selectedChannel = thread.id)}
-					class="btn btn-ghost w-full justify-start px-1.5"
+					onclick={() => selectChannel(thread.id)}
+					class="btn btn-ghost flex w-full flex-row justify-between px-1.5"
 					class:bg-primary={selectedChannel === thread.id}
 				>
-					{#if thread.locked}
-						<LockSimpleIcon class="mr-1 size-4.5 min-w-4.5" />
-					{:else if thread.isAnswered}
-						<CheckCircleIcon class="mr-1 size-4.5 min-w-4.5" />
-					{:else if thread.category.isAnswerable}
-						<QuestionIcon class="mr-1 size-4.5 min-w-4.5" />
-					{:else}
-						<HashStraightIcon class="mr-1 size-4.5 min-w-4.5" />
+					<div
+						class={[
+							"flex w-full flex-row items-center gap-2.5",
+							$storedSeqCounters &&
+								currentSeqCounters &&
+								$storedSeqCounters[thread.id] !== undefined &&
+								currentSeqCounters[thread.id] !== undefined &&
+								$storedSeqCounters[thread.id] < currentSeqCounters[thread.id] &&
+								"w-[calc(100%-2rem)]!",
+						]}
+					>
+						{#if thread.locked}
+							<LockSimpleIcon class="size-4.5 min-w-4.5" />
+						{:else if thread.isAnswered}
+							<CheckCircleIcon class="size-4.5 min-w-4.5" />
+						{:else if thread.category.isAnswerable}
+							<QuestionIcon class="size-4.5 min-w-4.5" />
+						{:else}
+							<HashStraightIcon class="size-4.5 min-w-4.5" />
+						{/if}
+						<span class="truncate font-light">{thread.title}</span>
+					</div>
+
+					{#if $storedSeqCounters && currentSeqCounters && $storedSeqCounters[thread.id] !== undefined && currentSeqCounters[thread.id] !== undefined}
+						{@const diff =
+							currentSeqCounters[thread.id] - $storedSeqCounters[thread.id]}
+						{#if diff}
+							<span class="badge badge-sm badge-primary">
+								{#if diff < 100}
+									{diff}
+								{:else}
+									:)
+								{/if}
+							</span>
+						{/if}
 					{/if}
-					<span class="truncate font-light">{thread.title}</span>
 				</button>
 			{/each}
 
