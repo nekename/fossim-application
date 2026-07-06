@@ -111,7 +111,7 @@ export interface Comment {
 	reactionGroups: {
 		content: string;
 		createdAt: string | null;
-		viewerHasReacted: boolean;
+		viewerHasReacted?: boolean;
 	}[];
 	viewerCanDelete?: boolean;
 	viewerCanUpdate?: boolean;
@@ -127,6 +127,20 @@ export interface Channel extends Comment {
 export interface Thread extends Channel {
 	isAnswered: boolean;
 	category: { id: string; name: string; isAnswerable: boolean };
+}
+
+export async function isChannel(
+	community: Community,
+	{ categoryId }: { categoryId: string },
+): Promise<boolean> {
+	const accessToken = await getAccessToken(community);
+
+	if (community.forge === "github") {
+		const { isChannel } = await import("./forges/github");
+		return await isChannel(accessToken, community.path, categoryId);
+	} else {
+		throw unsupportedForgeError(community.forge);
+	}
 }
 
 export async function fetchChannels(community: Community): Promise<Channel[]> {
@@ -200,7 +214,7 @@ export async function postComment(
 	community: Community,
 	channelId: string,
 	body: string,
-): Promise<Comment> {
+): Promise<string> {
 	const accessToken = await getAccessToken(community);
 
 	if (community.forge === "github") {
@@ -216,7 +230,7 @@ export async function postReply(
 	channelId: string,
 	commentId: string,
 	body: string,
-): Promise<Comment> {
+): Promise<string> {
 	const accessToken = await getAccessToken(community);
 
 	if (community.forge === "github") {
@@ -231,7 +245,7 @@ export async function editComment(
 	community: Community,
 	commentId: string,
 	body: string,
-): Promise<Comment> {
+): Promise<void> {
 	const accessToken = await getAccessToken(community);
 
 	if (community.forge === "github") {

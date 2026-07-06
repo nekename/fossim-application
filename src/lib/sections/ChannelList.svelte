@@ -1,5 +1,10 @@
 <script lang="ts">
 	import {
+		listenForUpdates,
+		type ChannelUpdate,
+		type ThreadUpdate,
+	} from "$lib/backend";
+	import {
 		fetchChannels,
 		fetchThreads,
 		leaveCommunity,
@@ -19,12 +24,14 @@
 	let {
 		community,
 		show,
+		eventTarget,
 		channels = $bindable(),
 		threads = $bindable(),
 		selectedChannel = $bindable(),
 	}: {
 		community: Community;
 		show: boolean;
+		eventTarget: EventTarget;
 		channels: Channel[] | null;
 		threads: Thread[] | null;
 		selectedChannel: string | null;
@@ -35,6 +42,81 @@
 	let threadsHasNextPage: boolean | null = $state(null);
 	let threadsEndCursor: string | null = $state(null);
 
+	function handleChannelUpdate(update: ChannelUpdate, channel: Channel) {
+		if (update === "created") {
+			channels!.splice(
+				(channels?.findLastIndex(
+					(c) => c.title.localeCompare(channel.title) <= 0,
+				) ?? -1) + 1,
+				0,
+				channel,
+			);
+		} else if (update === "deleted") {
+			const index = channels?.findIndex((c) => c.id === channel.id);
+			if (index !== undefined && index !== -1) channels!.splice(index, 1);
+		} else if (update === "edited") {
+			const index = channels?.findIndex((c) => c.id === channel.id);
+			if (index !== undefined && index !== -1) {
+				channels![index].title = channel.title;
+				channels![index].body = channel.body;
+				channels![index].includesCreatedEdit = true;
+			}
+		} else if (update === "locked" || update === "unlocked") {
+			const index = channels?.findIndex((c) => c.id === channel.id);
+			if (index !== undefined && index !== -1) {
+				channels![index].locked = channel.locked;
+			}
+		}
+	}
+
+	function handleThreadUpdate(update: ThreadUpdate, thread: Thread) {
+		if (update === "created") {
+			threads!.unshift(thread);
+		} else if (update === "deleted") {
+			const index = threads?.findIndex((t) => t.id === thread.id);
+			if (index !== undefined && index !== -1) threads!.splice(index, 1);
+		} else if (update === "edited") {
+			const index = threads?.findIndex((t) => t.id === thread.id);
+			if (index !== undefined && index !== -1) {
+				threads![index].title = thread.title;
+				threads![index].body = thread.body;
+				threads![index].includesCreatedEdit = true;
+			}
+		} else if (update === "locked" || update === "unlocked") {
+			const index = threads?.findIndex((t) => t.id === thread.id);
+			if (index !== undefined && index !== -1) {
+				threads![index].locked = thread.locked;
+			}
+		} else if (update === "answered" || update === "unanswered") {
+			const index = threads?.findIndex((t) => t.id === thread.id);
+			if (index !== undefined && index !== -1) {
+				threads![index].isAnswered = thread.isAnswered;
+			}
+		}
+	}
+
+	async function listen() {
+		await listenForUpdates(
+			community,
+			handleChannelUpdate,
+			handleThreadUpdate,
+			(update, channelId, comment, parentId) => {
+				eventTarget.dispatchEvent(
+					new CustomEvent(`comment-${channelId}`, {
+						detail: { update, comment, parentId },
+					}),
+				);
+			},
+			async () => {
+				try {
+					await listen();
+				} catch (error) {
+					errorMessage = error instanceof Error ? error.message : String(error);
+				}
+			},
+		);
+	}
+
 	onMount(async () => {
 		try {
 			channels = await fetchChannels(community);
@@ -42,6 +124,8 @@
 			threads = threadsRes.threads;
 			threadsHasNextPage = threadsRes.hasNextPage;
 			threadsEndCursor = threadsRes.endCursor;
+
+			await listen();
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : String(error);
 		}
@@ -132,12 +216,12 @@
 					class="btn btn-ghost w-full justify-start px-1.5"
 					class:bg-primary={selectedChannel === thread.id}
 				>
-					{#if thread.isAnswered}
+					{#if thread.locked}
+						<LockSimpleIcon class="mr-1 size-4.5 min-w-4.5" />
+					{:else if thread.isAnswered}
 						<CheckCircleIcon class="mr-1 size-4.5 min-w-4.5" />
 					{:else if thread.category.isAnswerable}
 						<QuestionIcon class="mr-1 size-4.5 min-w-4.5" />
-					{:else if thread.locked}
-						<LockSimpleIcon class="mr-1 size-4.5 min-w-4.5" />
 					{:else}
 						<HashStraightIcon class="mr-1 size-4.5 min-w-4.5" />
 					{/if}

@@ -11,6 +11,7 @@
 	let communities = liveQuery(() => db.communities.toArray());
 	let channels: {
 		[community: string]: {
+			eventTarget: EventTarget;
 			channels: Channel[];
 			threads: Thread[];
 		};
@@ -21,11 +22,21 @@
 	$effect(() => {
 		if ($communities) {
 			for (const community of $communities) {
-				channels[`${community.forge}/${community.path}`] ??= {
+				const cid = `${community.forge}/${community.path}`;
+				channels[cid] ??= {
 					channels: [],
 					threads: [],
+					eventTarget: new EventTarget(),
 				};
-				selectedChannels[`${community.forge}/${community.path}`] ??= null;
+				selectedChannels[cid] ??= null;
+
+				if (
+					selectedChannels[cid] &&
+					!channels[cid].channels.find((c) => c.id === selectedChannels[cid]) &&
+					!channels[cid].threads.find((t) => t.id === selectedChannels[cid])
+				) {
+					selectedChannels[cid] = null;
+				}
 			}
 		}
 	});
@@ -68,30 +79,27 @@
 		{/if}
 
 		{#each $communities as community}
-			{#if channels[`${community.forge}/${community.path}`] && selectedChannels[`${community.forge}/${community.path}`] !== undefined}
+			{@const cid = `${community.forge}/${community.path}`}
+
+			{#if channels[cid] && selectedChannels[cid] !== undefined}
 				<ChannelList
 					{community}
 					show={selectedCommunity?.forge === community.forge &&
 						selectedCommunity?.path === community.path}
-					bind:channels={
-						channels[`${community.forge}/${community.path}`].channels
-					}
-					bind:threads={
-						channels[`${community.forge}/${community.path}`].threads
-					}
-					bind:selectedChannel={
-						selectedChannels[`${community.forge}/${community.path}`]
-					}
+					eventTarget={channels[cid].eventTarget}
+					bind:channels={channels[cid].channels}
+					bind:threads={channels[cid].threads}
+					bind:selectedChannel={selectedChannels[cid]}
 				/>
 
-				{#each channels[`${community.forge}/${community.path}`].channels.concat(channels[`${community.forge}/${community.path}`].threads) as channel (channel.id)}
+				{#each channels[cid].channels.concat(channels[cid].threads) as channel (channel.id)}
 					<MessageList
 						{community}
 						{channel}
+						eventTarget={channels[cid].eventTarget}
 						show={selectedCommunity?.forge === community.forge &&
 							selectedCommunity?.path === community.path &&
-							selectedChannels[`${community.forge}/${community.path}`] ===
-								channel.id}
+							selectedChannels[cid] === channel.id}
 					/>
 				{/each}
 			{/if}

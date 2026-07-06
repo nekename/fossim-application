@@ -41,6 +41,14 @@ async function fetchChannelCategoryId(accessToken: string, path: string) {
 	return cachedChannelCategories[path];
 }
 
+export async function isChannel(
+	accessToken: string,
+	path: string,
+	categoryId: string,
+): Promise<boolean> {
+	return categoryId === (await fetchChannelCategoryId(accessToken, path));
+}
+
 export async function fetchChannels(
 	accessToken: string,
 	path: string,
@@ -280,29 +288,13 @@ export async function postComment(
 	accessToken: string,
 	channelId: string,
 	body: string,
-): Promise<Comment> {
+): Promise<string> {
 	const postCommentRes: GraphQlQueryResponseData = await graphql(
 		`
 			mutation ($channelId: ID!, $body: String!) {
 				addDiscussionComment(input: { discussionId: $channelId, body: $body }) {
 					comment {
 						id
-						author {
-							login
-						}
-						body
-						isAnswer
-						minimizedReason
-						publishedAt
-						includesCreatedEdit
-						reactionGroups {
-							content
-							createdAt
-							viewerHasReacted
-						}
-						viewerCanDelete
-						viewerCanUpdate
-						viewerCanReact
 					}
 				}
 			}
@@ -314,7 +306,7 @@ export async function postComment(
 		},
 	);
 
-	return postCommentRes.addDiscussionComment.comment;
+	return postCommentRes.addDiscussionComment.comment.id;
 }
 
 export async function postReply(
@@ -322,7 +314,7 @@ export async function postReply(
 	channelId: string,
 	commentId: string,
 	body: string,
-): Promise<Comment> {
+): Promise<string> {
 	const postReplyRes: GraphQlQueryResponseData = await graphql(
 		`
 			mutation ($channelId: ID!, $commentId: ID!, $body: String!) {
@@ -335,22 +327,6 @@ export async function postReply(
 				) {
 					comment {
 						id
-						author {
-							login
-						}
-						body
-						isAnswer
-						minimizedReason
-						publishedAt
-						includesCreatedEdit
-						reactionGroups {
-							content
-							createdAt
-							viewerHasReacted
-						}
-						viewerCanDelete
-						viewerCanUpdate
-						viewerCanReact
 					}
 				}
 			}
@@ -363,37 +339,19 @@ export async function postReply(
 		},
 	);
 
-	return postReplyRes.addDiscussionComment.comment;
+	return postReplyRes.addDiscussionComment.comment.id;
 }
 
 export async function editComment(
 	accessToken: string,
 	commentId: string,
 	body: string,
-): Promise<Comment> {
-	const editCommentRes: GraphQlQueryResponseData = await graphql(
+): Promise<void> {
+	await graphql(
 		`
 			mutation ($commentId: ID!, $body: String!) {
 				updateDiscussionComment(input: { commentId: $commentId, body: $body }) {
-					comment {
-						id
-						author {
-							login
-						}
-						body
-						isAnswer
-						minimizedReason
-						publishedAt
-						includesCreatedEdit
-						reactionGroups {
-							content
-							createdAt
-							viewerHasReacted
-						}
-						viewerCanDelete
-						viewerCanUpdate
-						viewerCanReact
-					}
+					clientMutationId
 				}
 			}
 		`,
@@ -403,8 +361,6 @@ export async function editComment(
 			headers: { authorization: `token ${accessToken}` },
 		},
 	);
-
-	return editCommentRes.updateDiscussionComment.comment;
 }
 
 export async function deleteComment(

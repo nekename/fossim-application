@@ -2,6 +2,7 @@
 	import CommentComponent from "$lib/components/Comment.svelte";
 	import MessageBox from "$lib/components/MessageBox.svelte";
 
+	import { type CommentUpdate } from "$lib/backend";
 	import {
 		addReaction,
 		deleteComment,
@@ -24,16 +25,20 @@
 	let {
 		community,
 		channel,
+		eventTarget,
 		show,
 	}: {
 		community: Community;
 		channel: Channel;
+		eventTarget: EventTarget;
 		show: boolean;
 	} = $props();
 
 	let comments: Comment[] | null = $state(null);
 	let commentsHasPreviousPage: boolean | null = $state(null);
 	let commentsStartCursor: string | null = $state(null);
+
+	let pendingSentComments: string[] = $state([]);
 
 	$effect(() => {
 		if (!comments && show) {
@@ -45,6 +50,102 @@
 					commentsStartCursor = startCursor;
 				},
 			);
+
+			eventTarget.addEventListener(`comment-${channel.id}`, (e) => {
+				const {
+					update,
+					comment,
+					parentId,
+				}: { update: CommentUpdate; comment: Comment; parentId: string } = (
+					e as CustomEvent
+				).detail;
+
+				if (update === "created") {
+					comment.viewerCanReact = !channel.locked;
+					if (pendingSentComments.includes(comment.id)) {
+						pendingSentComments = pendingSentComments.filter(
+							(id) => id !== comment.id,
+						);
+						comment.viewerCanDelete = true;
+						comment.viewerCanUpdate = true;
+					}
+
+					if (parentId) {
+						const parent = comments!.find((c) => c.id === parentId);
+						if (parent) parent.replies!.totalCount++;
+						if (!replies[parentId]) return;
+						replies[parentId].push(comment);
+					} else {
+						comments!.push(comment);
+					}
+				} else if (update === "deleted") {
+					delete replies[comment.id];
+					delete repliesHasPreviousPage[comment.id];
+					delete repliesStartCursor[comment.id];
+
+					if (parentId) {
+						const parent = comments!.find((c) => c.id === parentId);
+						if (parent) {
+							parent.replies!.totalCount--;
+							if (parent.body === "" && parent.replies!.totalCount === 0) {
+								if (openReplyComment?.id === parentId) openReplyComment = null;
+								delete replies[parentId];
+								delete repliesHasPreviousPage[parentId];
+								delete repliesStartCursor[parentId];
+								comments = comments!.filter((c) => c.id !== parentId);
+							}
+						}
+
+						if (!replies[parentId]) return;
+						replies[parentId] = replies[parentId].filter(
+							(c) => c.id !== comment.id,
+						);
+					} else if (comment.replies?.totalCount) {
+						const index = comments!.findIndex((c) => c.id === comment.id);
+						if (index !== undefined && index !== -1) {
+							comments![index].body = "";
+							if (comments![index].isAnswer) comments![index].isAnswer = false;
+							if (comments![index].viewerCanDelete)
+								comments![index].viewerCanDelete = false;
+						}
+					} else {
+						comments = comments!.filter((c) => c.id !== comment.id);
+					}
+				} else if (update === "edited") {
+					if (parentId) {
+						if (!replies[parentId]) return;
+						const index = replies[parentId].findIndex(
+							(c) => c.id === comment.id,
+						);
+						if (index !== undefined && index !== -1) {
+							replies[parentId][index].body = comment.body;
+							replies[parentId][index].includesCreatedEdit = true;
+						}
+					} else {
+						const index = comments!.findIndex((c) => c.id === comment.id);
+						if (index !== undefined && index !== -1) {
+							comments![index].body = comment.body;
+							comments![index].includesCreatedEdit = true;
+						}
+					}
+				} else if (update === "becameAnswer" || update === "noLongerAnswer") {
+					const isAnswer = update === "becameAnswer";
+					if (parentId) {
+						if (!replies[parentId]) return;
+						const index = replies[parentId].findIndex(
+							(c) => c.id === comment.id,
+						);
+						if (index !== undefined && index !== -1) {
+							replies[parentId][index].isAnswer = isAnswer;
+						}
+					} else {
+						const index = comments!.findIndex((c) => c.id === comment.id);
+						if (index !== undefined && index !== -1) {
+							comments![index].isAnswer = isAnswer;
+						}
+					}
+				}
+			});
 		}
 	});
 
@@ -122,25 +223,9 @@
 						showReplies={true}
 						canReply={!channel.locked}
 						onViewReplies={() => (openReplyComment = comment)}
-						onDelete={async () => {
-							await deleteComment(community, comment.id);
-							delete replies[comment.id];
-							delete repliesHasPreviousPage[comment.id];
-							delete repliesStartCursor[comment.id];
-							if (comment.replies?.totalCount) {
-								comment.body = "";
-								if (comment.isAnswer) comment.isAnswer = false;
-								if (comment.viewerCanDelete) comment.viewerCanDelete = false;
-							} else {
-								comments = comments!.filter((c) => c.id !== comment.id);
-							}
-						}}
-						onEdit={async (newText) => {
-							Object.assign(
-								comment,
-								await editComment(community, comment.id, newText),
-							);
-						}}
+						onDelete={async () => await deleteComment(community, comment.id)}
+						onEdit={async (newText) =>
+							await editComment(community, comment.id, newText)}
 						onReply={() => (openReplyComment = comment)}
 						onReact={async (reaction) => {
 							comment.reactionGroups = await addReaction(
@@ -177,7 +262,9 @@
 		{#if !channel.locked && comments !== null && commentsHasPreviousPage !== null}
 			<MessageBox
 				onSubmit={async (text) =>
-					comments!.push(await postComment(community, channel.id, text))}
+					pendingSentComments.push(
+						await postComment(community, channel.id, text),
+					)}
 			/>
 		{/if}
 	</div>
@@ -211,36 +298,9 @@
 							comment={reply}
 							showReplies={false}
 							canReply={false}
-							onDelete={async () => {
-								await deleteComment(community, reply.id);
-								delete replies[reply.id];
-								delete repliesHasPreviousPage[reply.id];
-								delete repliesStartCursor[reply.id];
-								if (reply.replies?.totalCount) {
-									reply.body = "";
-									if (reply.isAnswer) reply.isAnswer = false;
-									if (reply.viewerCanDelete) reply.viewerCanDelete = false;
-								} else {
-									replies[openReplyComment!.id] = replies[
-										openReplyComment!.id
-									].filter((r) => r.id !== reply.id);
-									openReplyComment!.replies!.totalCount--;
-									if (openReplyComment!.replies!.totalCount === 0) {
-										if (!openReplyComment!.body) {
-											comments = comments!.filter(
-												(c) => c.id !== openReplyComment!.id,
-											);
-										}
-										openReplyComment = null;
-									}
-								}
-							}}
-							onEdit={async (newText) => {
-								Object.assign(
-									reply,
-									await editComment(community, reply.id, newText),
-								);
-							}}
+							onDelete={async () => await deleteComment(community, reply.id)}
+							onEdit={async (newText) =>
+								await editComment(community, reply.id, newText)}
 							onReact={async (reaction) => {
 								reply.reactionGroups = await addReaction(
 									community,
@@ -275,17 +335,15 @@
 
 			{#if !channel.locked && replies[openReplyComment.id] !== undefined && replies[openReplyComment.id] !== null && repliesHasPreviousPage[openReplyComment.id] !== undefined && repliesHasPreviousPage[openReplyComment.id] !== null}
 				<MessageBox
-					onSubmit={async (text) => {
-						replies[openReplyComment!.id].push(
+					onSubmit={async (text) =>
+						pendingSentComments.push(
 							await postReply(
 								community,
 								channel.id,
 								openReplyComment!.id,
 								text,
 							),
-						);
-						openReplyComment!.replies!.totalCount++;
-					}}
+						)}
 				/>
 			{/if}
 		</div>
