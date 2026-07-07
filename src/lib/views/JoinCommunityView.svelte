@@ -3,7 +3,7 @@
 	import OAuthView from "$lib/views/OAuthView.svelte";
 
 	import {
-		fetchCommunityHost,
+		fetchCommunityConfig,
 		parseCommunityUrl,
 		type Community,
 	} from "$lib/communities";
@@ -36,7 +36,7 @@
 			) {
 				throw new Error($t("join_community_view.already_joined"));
 			}
-			host = await fetchCommunityHost(fetchedCommunity);
+			host = (await fetchCommunityConfig(fetchedCommunity)).host;
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : String(error);
 			return;
@@ -45,7 +45,7 @@
 		let hosts = [];
 		for (const community of await db.communities.toArray()) {
 			try {
-				hosts.push(await fetchCommunityHost(community));
+				hosts.push((await fetchCommunityConfig(community)).host);
 			} catch {}
 		}
 		if (hosts.includes(host)) hostConfirmed = true;

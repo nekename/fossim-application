@@ -35,13 +35,20 @@ export async function parseCommunityUrl(
 	throw unsupportedForgeError(forge);
 }
 
-let cachedCommunityHosts: Record<string, string> = {};
-export async function fetchCommunityHost({
+export interface CommunityConfig {
+	host: string;
+	name?: string;
+	icon?: string;
+	banner?: string;
+}
+
+let cachedCommunityConfigs: Record<string, CommunityConfig> = {};
+export async function fetchCommunityConfig({
 	forge,
 	path,
-}: Community): Promise<string> {
-	if (cachedCommunityHosts[`${forge}/${path}`]) {
-		return cachedCommunityHosts[`${forge}/${path}`];
+}: Community): Promise<CommunityConfig> {
+	if (cachedCommunityConfigs[`${forge}/${path}`]) {
+		return cachedCommunityConfigs[`${forge}/${path}`];
 	}
 
 	const urls = [];
@@ -57,8 +64,8 @@ export async function fetchCommunityHost({
 		if (response.ok) {
 			const data = await response.json();
 			if (data && data.host) {
-				cachedCommunityHosts[`${forge}/${path}`] = data.host;
-				return data.host;
+				cachedCommunityConfigs[`${forge}/${path}`] = data;
+				return data;
 			}
 		}
 	}
@@ -67,7 +74,7 @@ export async function fetchCommunityHost({
 }
 
 export async function leaveCommunity(community: Community): Promise<void> {
-	const host = await fetchCommunityHost(community);
+	const host = (await fetchCommunityConfig(community)).host;
 	const clientId = await fetchClientId(host, community.forge);
 
 	await db.communities.delete([community.forge, community.path]);
@@ -79,7 +86,7 @@ export async function leaveCommunity(community: Community): Promise<void> {
 		.where("forge")
 		.equals(community.forge)
 		.toArray()) {
-		if ((await fetchCommunityHost(otherCommunity)) === host) {
+		if ((await fetchCommunityConfig(otherCommunity)).host === host) {
 			return;
 		}
 	}
@@ -88,7 +95,7 @@ export async function leaveCommunity(community: Community): Promise<void> {
 }
 
 async function getAccessToken(community: Community): Promise<string> {
-	const host = await fetchCommunityHost(community);
+	const host = (await fetchCommunityConfig(community)).host;
 	const clientId = await fetchClientId(host, community.forge);
 
 	const accessToken = (

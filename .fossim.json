@@ -1,3 +1,5 @@
 {
-	"host": "https://fossim.amankhanna.me"
+	"host": "https://fossim.amankhanna.me",
+	"name": "Fossim",
+	"icon": "https://raw.githubusercontent.com/nekename/fossim-application/main/src-tauri/icons/icon.png"
 }

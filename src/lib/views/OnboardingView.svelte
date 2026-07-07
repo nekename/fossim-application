@@ -3,7 +3,7 @@
 	import OAuthView from "$lib/views/OAuthView.svelte";
 
 	import {
-		fetchCommunityHost,
+		fetchCommunityConfig,
 		parseCommunityUrl,
 		type Community,
 	} from "$lib/communities";
@@ -28,7 +28,7 @@
 		errorMessage = null;
 		try {
 			fetchedCommunity = await parseCommunityUrl(repositoryInput.value);
-			fetchedHost = await fetchCommunityHost(fetchedCommunity);
+			fetchedHost = (await fetchCommunityConfig(fetchedCommunity)).host;
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : String(error);
 		}

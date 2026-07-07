@@ -1,7 +1,11 @@
 <script lang="ts">
 	import JoinCommunityView from "$lib/views/JoinCommunityView.svelte";
 
-	import type { Community } from "$lib/communities";
+	import {
+		fetchCommunityConfig,
+		type Community,
+		type CommunityConfig,
+	} from "$lib/communities";
 	import { db, liveQuery } from "$lib/db";
 	import { t } from "$lib/i18n";
 
@@ -16,6 +20,20 @@
 	} = $props();
 
 	let communities = liveQuery(() => db.communities.toArray());
+	let communityConfigs: { [communityId: string]: Partial<CommunityConfig> } =
+		$state({});
+	$effect(() => {
+		if ($communities) {
+			for (const community of $communities) {
+				const cid = `${community.forge}/${community.path}`;
+				if (!communityConfigs[cid]) {
+					fetchCommunityConfig(community)
+						.then((config) => (communityConfigs[cid] = config))
+						.catch(() => {});
+				}
+			}
+		}
+	});
 
 	let isDrawerOpen = $state(false);
 	let joinCommunityViewOpen = $state(false);
@@ -36,6 +54,9 @@
 		>
 			<ul class="menu w-full grow gap-2">
 				{#each $communities as community}
+					{@const communityConfig =
+						communityConfigs[`${community.forge}/${community.path}`] ?? {}}
+
 					<li>
 						<button
 							onclick={() => {
@@ -45,13 +66,14 @@
 							class:menu-active={selectedCommunity?.forge === community.forge &&
 								selectedCommunity?.path === community.path}
 						>
-							{#if community.forge === "github"}
+							{#if communityConfig.icon || community.forge === "github"}
 								<img
-									src={"https://avatars.githubusercontent.com/" +
-										community.path.split("/")[0]}
-									alt={community.path.split("/")[0]}
+									src={communityConfig.icon ||
+										"https://avatars.githubusercontent.com/" +
+											community.path.split("/")[0]}
+									alt={community.path.split("/")[1]}
 									class={[
-										"drop-shadow-primary inline-block size-10 min-w-10 rounded-full transition-all duration-200",
+										"drop-shadow-primary inline-block size-10 min-w-10 transition-all duration-200",
 										isDrawerOpen && "mr-1",
 										!isDrawerOpen &&
 											(selectedCommunity?.forge !== community.forge ||
@@ -76,7 +98,8 @@
 											"drop-shadow-xl/30",
 									]}
 								>
-									{community.path.split("/")[0][0].toUpperCase()}
+									{(communityConfig.name ??
+										community.path.split("/")[1])[0].toUpperCase()}
 								</span>
 							{/if}
 
@@ -93,7 +116,7 @@
 							{/if}
 
 							<span class="is-drawer-close:hidden truncate font-medium">
-								{community.path.split("/")[1]}
+								{communityConfig.name ?? community.path.split("/")[1]}
 							</span>
 						</button>
 					</li>

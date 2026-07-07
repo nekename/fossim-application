@@ -1,5 +1,5 @@
 import {
-	fetchCommunityHost,
+	fetchCommunityConfig,
 	isChannel,
 	type Channel,
 	type Comment,
@@ -122,7 +122,7 @@ export async function listenForUpdates(
 ): Promise<void> {
 	if (community.forge !== "github") return;
 
-	const host = new URL(await fetchCommunityHost(community)).host;
+	const host = new URL((await fetchCommunityConfig(community)).host).host;
 	const ws = new WebSocket(
 		`wss://${host}/api/events/${community.forge}/${community.path}`,
 	);
@@ -256,7 +256,7 @@ export async function fetchSeqCounters(
 	community: Community,
 	channelIds: string[],
 ): Promise<{ [channelId: string]: number }> {
-	const host = await fetchCommunityHost(community);
+	const host = (await fetchCommunityConfig(community)).host;
 	return (
 		await makeApiRequest(
 			host,

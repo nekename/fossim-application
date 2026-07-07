@@ -7,10 +7,12 @@
 	} from "$lib/backend";
 	import {
 		fetchChannels,
+		fetchCommunityConfig,
 		fetchThreads,
 		leaveCommunity,
 		type Channel,
 		type Community,
+		type CommunityConfig,
 		type Thread,
 	} from "$lib/communities";
 	import { db, liveQuery } from "$lib/db";
@@ -40,6 +42,8 @@
 		selectedChannel: string | null;
 		notifCount: number;
 	} = $props();
+
+	let communityConfig: CommunityConfig | null = $state(null);
 
 	let errorMessage: string | null = $state(null);
 
@@ -209,6 +213,8 @@
 
 	onMount(async () => {
 		try {
+			communityConfig = await fetchCommunityConfig(community);
+
 			channels = await fetchChannels(community);
 			const threadsRes = await fetchThreads(community);
 			threads = threadsRes.threads;
@@ -265,18 +271,33 @@
 	class="bg-base-200 flex h-screen w-72 min-w-72 flex-col overflow-scroll p-4"
 	class:!hidden={!show}
 >
-	<div class="mb-2.5 flex flex-row items-center justify-between">
-		<h2 class="text-lg font-bold">
-			{community.path.split("/")[1]}
-		</h2>
-
-		<button
-			onclick={leave}
-			class="btn btn-ghost btn-square btn-sm rotate-180"
-			title={$t("channel_list.leave_community")}
+	<div
+		class={[
+			"-m-4 mb-2.5 flex flex-row items-end bg-cover! px-4 pt-4",
+			communityConfig?.banner && "min-h-36",
+		]}
+		style={communityConfig?.banner
+			? `background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.9)), url(${communityConfig.banner});`
+			: ""}
+	>
+		<div
+			class={[
+				"flex w-full flex-row items-center justify-between",
+				communityConfig?.banner && "mb-2.5",
+			]}
 		>
-			<SignOutIcon class="size-5" />
-		</button>
+			<h2 class="text-lg font-bold">
+				{communityConfig?.name || community.path.split("/")[1]}
+			</h2>
+
+			<button
+				onclick={leave}
+				class="btn btn-ghost btn-square btn-sm rotate-180"
+				title={$t("channel_list.leave_community")}
+			>
+				<SignOutIcon class="size-5" />
+			</button>
+		</div>
 	</div>
 
 	{#if errorMessage}
