@@ -176,7 +176,9 @@
 		}
 	}
 
-	async function listen() {
+	let listenErrorMessage: string | null = $state(null);
+
+	async function listen(retryListen: () => void) {
 		await listenForUpdates(
 			community,
 			handleChannelUpdate,
@@ -203,13 +205,7 @@
 					}
 				}
 			},
-			async () => {
-				try {
-					await listen();
-				} catch (error) {
-					errorMessage = error instanceof Error ? error.message : String(error);
-				}
-			},
+			retryListen,
 		);
 	}
 
@@ -233,7 +229,22 @@
 				await initStoredSeqCounter(channelId, seqCount);
 			}
 
-			await listen();
+			const retryListen = (delay: boolean = true) => {
+				setTimeout(
+					async () => {
+						try {
+							await listen(retryListen);
+							listenErrorMessage = null;
+						} catch (error) {
+							listenErrorMessage =
+								error instanceof Error ? error.message : String(error);
+							retryListen();
+						}
+					},
+					delay ? 5000 : 0,
+				);
+			};
+			retryListen(false);
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : String(error);
 		}
@@ -329,9 +340,9 @@
 		</div>
 	</div>
 
-	{#if errorMessage}
+	{#if errorMessage || listenErrorMessage}
 		<div class="alert alert-error my-auto">
-			<span>{errorMessage}</span>
+			<span>{errorMessage ?? listenErrorMessage}</span>
 		</div>
 	{:else if !channels || !threads}
 		<div class="flex h-full w-full items-center justify-center">
