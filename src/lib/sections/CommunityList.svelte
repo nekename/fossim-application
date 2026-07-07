@@ -60,7 +60,17 @@
 								/>
 							{:else}
 								<span
-									class="bg-base-content text-primary mr-1 flex size-10 min-w-10 items-center justify-center rounded-full"
+									class={[
+										"drop-shadow-primary bg-base-content text-primary flex size-10 min-w-10 items-center justify-center rounded-full transition-all duration-200",
+										isDrawerOpen && "mr-1",
+										!isDrawerOpen &&
+											(selectedCommunity?.forge !== community.forge ||
+												selectedCommunity?.path !== community.path) &&
+											"blur-[1px]",
+										selectedCommunity?.forge === community.forge &&
+											selectedCommunity?.path === community.path &&
+											"drop-shadow-xl/30",
+									]}
 								>
 									{community.path.split("/")[0][0].toUpperCase()}
 								</span>
