@@ -20,6 +20,7 @@
 
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
 	import HashStraightIcon from "phosphor-svelte/lib/HashStraightIcon";
+	import HeartIcon from "phosphor-svelte/lib/HeartIcon";
 	import LockSimpleIcon from "phosphor-svelte/lib/LockSimpleIcon";
 	import QuestionIcon from "phosphor-svelte/lib/QuestionIcon";
 	import SignOutIcon from "phosphor-svelte/lib/SignOutIcon";
@@ -44,6 +45,7 @@
 	} = $props();
 
 	let communityConfig: CommunityConfig | null = $state(null);
+	let fundingLinks: { url: string; platform: string }[] | null = $state(null);
 
 	let errorMessage: string | null = $state(null);
 
@@ -215,7 +217,9 @@
 		try {
 			communityConfig = await fetchCommunityConfig(community);
 
-			channels = await fetchChannels(community);
+			const channelsRes = await fetchChannels(community);
+			channels = channelsRes.channels;
+			fundingLinks = channelsRes.fundingLinks;
 			const threadsRes = await fetchThreads(community);
 			threads = threadsRes.threads;
 			threadsHasNextPage = threadsRes.hasNextPage;
@@ -290,13 +294,38 @@
 				{communityConfig?.name || community.path.split("/")[1]}
 			</h2>
 
-			<button
-				onclick={leave}
-				class="btn btn-ghost btn-square btn-sm rotate-180"
-				title={$t("channel_list.leave_community")}
-			>
-				<SignOutIcon class="size-5" />
-			</button>
+			<div class="flex flex-row items-center gap-1">
+				{#if fundingLinks?.length}
+					<button
+						class="btn btn-ghost btn-square btn-sm"
+						popovertarget={`sponsor-popover-${community.forge}-${community.path}`}
+						style={`anchor-name:--anchor-${community.forge}-${community.path}`}
+						title={$t("channel_list.support_developer")}
+					>
+						<HeartIcon class="size-5" />
+					</button>
+					<ul
+						class="dropdown menu rounded-box bg-base-100 shadow-sm"
+						popover
+						id={`sponsor-popover-${community.forge}-${community.path}`}
+						style={`position-anchor:--anchor-${community.forge}-${community.path}`}
+					>
+						{#each fundingLinks as link}
+							<li>
+								<a href={link.url} target="_blank">{link.platform}</a>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+
+				<button
+					onclick={leave}
+					class="btn btn-ghost btn-square btn-sm rotate-180"
+					title={$t("channel_list.leave_community")}
+				>
+					<SignOutIcon class="size-5" />
+				</button>
+			</div>
 		</div>
 	</div>
 

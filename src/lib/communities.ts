@@ -153,7 +153,12 @@ export async function isChannel(
 	}
 }
 
-export async function fetchChannels(community: Community): Promise<Channel[]> {
+export async function fetchChannels(
+	community: Community,
+): Promise<{
+	fundingLinks: { url: string; platform: string }[];
+	channels: Channel[];
+}> {
 	const accessToken = await getAccessToken(community);
 
 	if (community.forge === "github") {

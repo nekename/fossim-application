@@ -49,10 +49,30 @@ export async function isChannel(
 	return categoryId === (await fetchChannelCategoryId(accessToken, path));
 }
 
+const fundingPlatformMap: Record<string, string> = {
+	BUY_ME_A_COFFEE: "Buy Me a Coffee",
+	COMMUNITY_BRIDGE: "Community Bridge",
+	CUSTOM: "Custom",
+	GITHUB: "GitHub",
+	ISSUEHUNT: "IssueHunt",
+	KO_FI: "Ko-fi",
+	LFX_CROWDFUNDING: "LFX Crowdfunding",
+	LIBERAPAY: "Liberapay",
+	OPEN_COLLECTIVE: "Open Collective",
+	PATREON: "Patreon",
+	POLAR: "Polar",
+	THANKS_DEV: "thanks.dev",
+	TIDELIFT: "Tidelift",
+};
+
+// Repository funding links are also returned by this function in order to minimise GraphQL API points used.
 export async function fetchChannels(
 	accessToken: string,
 	path: string,
-): Promise<Channel[]> {
+): Promise<{
+	fundingLinks: { url: string; platform: string }[];
+	channels: Channel[];
+}> {
 	const [owner, repo] = path.split("/");
 
 	const categoryId = await fetchChannelCategoryId(accessToken, path);
@@ -60,6 +80,10 @@ export async function fetchChannels(
 		`
 			query ($owner: String!, $repo: String!, $categoryId: ID!) {
 				repository(owner: $owner, name: $repo) {
+					fundingLinks {
+						url
+						platform
+					}
 					discussions(first: 100, categoryId: $categoryId) {
 						nodes {
 							id
@@ -90,9 +114,25 @@ export async function fetchChannels(
 		},
 	);
 
-	return (discussionsRes.repository?.discussions?.nodes || []).sort(
-		(a: any, b: any) => a.title.localeCompare(b.title),
-	);
+	return {
+		fundingLinks: (discussionsRes.repository?.fundingLinks || []).map(
+			(link: any) => ({
+				url: link.url,
+				platform:
+					fundingPlatformMap[link.platform] ??
+					link.platform
+						.replace("_", " ")
+						.replace(
+							/\w\S*/g,
+							(text: string) =>
+								text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
+						),
+			}),
+		),
+		channels: (discussionsRes.repository?.discussions?.nodes || []).sort(
+			(a: any, b: any) => a.title.localeCompare(b.title),
+		),
+	};
 }
 
 export async function fetchThreads(
