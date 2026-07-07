@@ -9,29 +9,29 @@
       <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
     <clipPath id="badgeClip">
-      <rect x="0" y="0" width="512" height="512" rx="112"/>
+      <circle cx="256" cy="256" r="256"/>
     </clipPath>
   </defs>
 
   <!-- background badge -->
-  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <circle cx="256" cy="256" r="256" fill="url(#bgGrad)"/>
 
   <!-- subtle top sheen for depth, clipped to badge shape -->
   <rect x="0" y="0" width="512" height="260" fill="url(#sheen)" clip-path="url(#badgeClip)"/>
 
   <!-- thin inner keyline for edge definition -->
-  <rect x="1.5" y="1.5" width="509" height="509" rx="110.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="2"/>
+  <circle cx="256" cy="256" r="254" fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="2"/>
 
   <!-- the hash mark: 4 bars on a true symmetric grid, centered on the canvas -->
-  <rect x="190" y="106" width="36" height="300" rx="10" fill="#F3F1FF"/>
-  <rect x="286" y="106" width="36" height="300" rx="10" fill="#F3F1FF"/>
-  <rect x="106" y="190" width="300" height="36" rx="10" fill="#F3F1FF"/>
-  <rect x="106" y="286" width="300" height="36" rx="10" fill="#F3F1FF"/>
+  <rect x="164" y="64" width="52" height="384" rx="14" fill="#F3F1FF"/>
+  <rect x="296" y="64" width="52" height="384" rx="14" fill="#F3F1FF"/>
+  <rect x="64" y="164" width="384" height="52" rx="14" fill="#F3F1FF"/>
+  <rect x="64" y="296" width="384" height="52" rx="14" fill="#F3F1FF"/>
 
   <!-- commit nodes at each intersection -->
-  <circle cx="208" cy="208" r="13" fill="#3E9C89"/>
-  <circle cx="208" cy="304" r="13" fill="#3E9C89"/>
-  <circle cx="304" cy="304" r="13" fill="#3E9C89"/>
+  <circle cx="190" cy="190" r="19" fill="#3E9C89"/>
+  <circle cx="190" cy="322" r="19" fill="#3E9C89"/>
+  <circle cx="322" cy="322" r="19" fill="#3E9C89"/>
   <!-- single accent node: the one "live" signal -->
-  <circle cx="304" cy="208" r="13" fill="#F2B33D"/>
+  <circle cx="322" cy="190" r="19" fill="#F2B33D"/>
 </svg>
