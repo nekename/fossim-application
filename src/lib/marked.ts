@@ -39,4 +39,48 @@ marked.use(
 	}),
 );
 
+const forgeItemLink = {
+	name: "forgeItemLink",
+	level: "inline" as "inline", // TypeScript
+	start(src: string) {
+		return src.match(
+			/^(?:(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)#)|(?:GH-)|#)(\d+)$/,
+		)?.index;
+	},
+	tokenizer(src: string) {
+		const match =
+			/^(?:(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)#)|(?:GH-)|#)(\d+)$/.exec(
+				src,
+			);
+		if (match) {
+			const [raw, owner, repo, number] = match;
+			return { type: "forgeItemLink", raw, owner, repo, number };
+		}
+	},
+	renderer(token: {
+		raw: string;
+		owner?: string;
+		repo?: string;
+		number: string;
+	}) {
+		// @ts-expect-error
+		const community = this.parser.options.community;
+		if (!community || community.forge !== "github") return token.raw;
+
+		const repoSlug =
+			token.owner && token.repo
+				? `${token.owner}/${token.repo}`
+				: community.path;
+
+		const url: string = `https://github.com/${repoSlug}/issues/${token.number}`;
+		const label =
+			token.owner && token.repo
+				? `${token.owner}/${token.repo}#${token.number}`
+				: `#${token.number}`;
+
+		return `<a href="${url}">${label}</a>`;
+	},
+};
+marked.use({ extensions: [forgeItemLink] });
+
 export { marked };

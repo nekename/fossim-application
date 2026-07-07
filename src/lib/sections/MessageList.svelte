@@ -219,6 +219,7 @@
 					.concat(comments)
 					.reverse() as comment (comment.id)}
 					<CommentComponent
+						{community}
 						{comment}
 						showReplies={true}
 						canReply={!channel.locked}
@@ -295,6 +296,7 @@
 						.concat(replies[openReplyComment.id])
 						.reverse() as reply (reply.id)}
 						<CommentComponent
+							{community}
 							comment={reply}
 							showReplies={false}
 							canReply={false}

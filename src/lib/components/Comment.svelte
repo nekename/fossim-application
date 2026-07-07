@@ -1,7 +1,7 @@
 <script lang="ts">
 	import MessageBox from "$lib/components/MessageBox.svelte";
 
-	import { type Comment } from "$lib/communities";
+	import { type Comment, type Community } from "$lib/communities";
 	import { t } from "$lib/i18n";
 	import { marked } from "$lib/marked";
 
@@ -15,6 +15,7 @@
 	import WarningCircleIcon from "phosphor-svelte/lib/WarningCircleIcon";
 
 	let {
+		community,
 		comment,
 		showReplies,
 		canReply,
@@ -25,6 +26,7 @@
 		onReact,
 		onUnreact,
 	}: {
+		community: Community;
 		comment: Comment;
 		showReplies: boolean;
 		canReply: boolean;
@@ -170,7 +172,8 @@
 				onclick={handleClick}
 				onkeyup={handleClick}
 			>
-				{#await marked.parse( comment.body || `*${$t("comment.was_deleted")}*`, { breaks: true }, ) then parsedBody}
+				{#await marked.parse( comment.body || `*${$t("comment.was_deleted")}*`, { // @ts-expect-error
+						community, breaks: true }, ) then parsedBody}
 					{@html DOMPurify.sanitize(parsedBody)}
 				{/await}
 			</div>
@@ -182,7 +185,8 @@
 			onclick={handleClick}
 			onkeyup={handleClick}
 		>
-			{#await marked.parse( comment.body || `*${$t("comment.was_deleted")}*`, { breaks: true }, ) then parsedBody}
+			{#await marked.parse( comment.body || `*${$t("comment.was_deleted")}*`, { // @ts-expect-error
+					community, breaks: true }, ) then parsedBody}
 				{@html DOMPurify.sanitize(parsedBody)}
 			{/await}
 		</div>
