@@ -35,17 +35,18 @@
 		}
 	});
 
-	let isDrawerOpen = $state(false);
+	let isMouseOver = $state(false);
+	let isDrawerOpen = $derived(isMouseOver || !selectedCommunity);
 	let joinCommunityViewOpen = $state(false);
 </script>
 
 <div
 	class="drawer drawer-open w-min"
 	role="list"
-	onmouseover={() => (isDrawerOpen = true)}
-	onfocus={() => (isDrawerOpen = true)}
-	onmouseleave={() => (isDrawerOpen = false)}
-	onblur={() => (isDrawerOpen = false)}
+	onmouseover={() => (isMouseOver = true)}
+	onfocus={() => (isMouseOver = true)}
+	onmouseleave={() => (isMouseOver = false)}
+	onblur={() => (isMouseOver = false)}
 >
 	<input bind:checked={isDrawerOpen} type="checkbox" class="drawer-toggle" />
 	<div class="drawer-side is-drawer-close:overflow-visible">
