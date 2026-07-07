@@ -30,6 +30,7 @@
 		channels = $bindable(),
 		threads = $bindable(),
 		selectedChannel = $bindable(),
+		notifCount = $bindable(),
 	}: {
 		community: Community;
 		show: boolean;
@@ -37,6 +38,7 @@
 		channels: Channel[] | null;
 		threads: Thread[] | null;
 		selectedChannel: string | null;
+		notifCount: number;
 	} = $props();
 
 	let errorMessage: string | null = $state(null);
@@ -54,6 +56,18 @@
 		return map;
 	});
 	let currentSeqCounters: { [channelId: string]: number } | null = $state(null);
+	$effect(() => {
+		if (currentSeqCounters && $storedSeqCounters) {
+			notifCount = Object.entries(currentSeqCounters).reduce(
+				(acc, [channelId, seqCount]) =>
+					acc +
+					(seqCount > $storedSeqCounters[channelId]
+						? seqCount - $storedSeqCounters[channelId]
+						: 0),
+				0,
+			);
+		}
+	});
 
 	async function initStoredSeqCounter(channelId: string, seqCount: number) {
 		if (

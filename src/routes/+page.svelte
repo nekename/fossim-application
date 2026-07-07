@@ -14,6 +14,7 @@
 			eventTarget: EventTarget;
 			channels: Channel[];
 			threads: Thread[];
+			notifCount: number;
 		};
 	} = $state({});
 	let selectedChannels: {
@@ -27,6 +28,7 @@
 					channels: [],
 					threads: [],
 					eventTarget: new EventTarget(),
+					notifCount: 0,
 				};
 				selectedChannels[cid] ??= null;
 
@@ -68,7 +70,12 @@
 	<OnboardingView />
 {:else}
 	<div class="flex flex-row">
-		<CommunityList bind:selectedCommunity />
+		<CommunityList
+			bind:selectedCommunity
+			notifCounts={Object.fromEntries(
+				Object.entries(channels).map(([k, v]) => [k, v.notifCount]),
+			)}
+		/>
 
 		{#if !selectedCommunity}
 			<div class="flex h-screen w-full items-center justify-center">
@@ -90,6 +97,7 @@
 					bind:channels={channels[cid].channels}
 					bind:threads={channels[cid].threads}
 					bind:selectedChannel={selectedChannels[cid]}
+					bind:notifCount={channels[cid].notifCount}
 				/>
 
 				{#each channels[cid].channels.concat(channels[cid].threads) as channel (channel.id)}

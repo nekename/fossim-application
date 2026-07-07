@@ -9,7 +9,11 @@
 
 	let {
 		selectedCommunity = $bindable(),
-	}: { selectedCommunity: Community | null } = $props();
+		notifCounts,
+	}: {
+		selectedCommunity: Community | null;
+		notifCounts: { [communityId: string]: number };
+	} = $props();
 
 	let communities = liveQuery(() => db.communities.toArray());
 
@@ -75,6 +79,19 @@
 									{community.path.split("/")[0][0].toUpperCase()}
 								</span>
 							{/if}
+
+							{#if notifCounts[`${community.forge}/${community.path}`] > 0}
+								<span
+									class="badge badge-sm badge-primary absolute right-1 bottom-1 z-10"
+								>
+									{#if notifCounts[`${community.forge}/${community.path}`] < 100}
+										{notifCounts[`${community.forge}/${community.path}`]}
+									{:else}
+										:)
+									{/if}
+								</span>
+							{/if}
+
 							<span class="is-drawer-close:hidden truncate font-medium">
 								{community.path.split("/")[1]}
 							</span>
