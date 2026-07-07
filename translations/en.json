@@ -1,4 +1,5 @@
 {
+	"backend.could_not_contact_host": "Could not contact the community's host: {{error}}",
 	"channel_list.channels": "Channels",
 	"channel_list.leave_community": "Leave community",
 	"channel_list.load_more": "Load more",
@@ -48,7 +49,6 @@
 	"message_list.open_in_browser": "Open in browser",
 	"oauth_view.copied": "Copied!",
 	"oauth_view.could_not_complete_oauth": "Could not complete the authorisation flow: {{error}}",
-	"oauth_view.could_not_contact_host": "Could not contact the community's host: {{error}}",
 	"oauth_view.could_not_start_oauth": "Could not start the authorisation flow: {{error}}",
 	"oauth_view.enter_code": "Enter the code below at the URL below to log in.",
 	"oauth_view.log_in": "Log in",

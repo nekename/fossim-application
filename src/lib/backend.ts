@@ -6,8 +6,10 @@ import {
 	type Community,
 	type Thread,
 } from "./communities";
+import { t } from "./i18n";
 
 import { encode as msgpackEncode } from "@msgpack/msgpack";
+import { get } from "svelte/store";
 
 export async function makeApiRequest(
 	host: string,
@@ -15,11 +17,21 @@ export async function makeApiRequest(
 	method: string = "GET",
 	body?: any,
 ): Promise<any> {
-	const response = await fetch(host + path, {
-		method,
-		headers: body ? { "Content-Type": "application/json" } : undefined,
-		body: body ? JSON.stringify(body) : undefined,
-	});
+	let response;
+	try {
+		response = await fetch(host + path, {
+			method,
+			headers: body ? { "Content-Type": "application/json" } : undefined,
+			body: body ? JSON.stringify(body) : undefined,
+		});
+	} catch (error) {
+		throw new Error(
+			get(t)("backend.could_not_contact_host", {
+				error: error instanceof Error ? error.message : String(error),
+			}),
+		);
+	}
+
 	if (!response.ok) {
 		let message = response.statusText;
 		try {
@@ -28,7 +40,11 @@ export async function makeApiRequest(
 				message = response.statusText + ": " + json.message;
 			}
 		} catch {}
-		throw new Error(message);
+		throw new Error(
+			get(t)("backend.could_not_contact_host", {
+				error: message,
+			}),
+		);
 	}
 	return await response.json();
 }
@@ -129,7 +145,12 @@ export async function listenForUpdates(
 
 	await new Promise<void>((resolve, reject) => {
 		ws.onopen = () => resolve();
-		ws.onerror = (err) => reject(err);
+		ws.onerror = () =>
+			reject(
+				get(t)("backend.could_not_contact_host", {
+					error: "WebSocket connection error",
+				}),
+			);
 	});
 
 	ws.onclose = (event) => {

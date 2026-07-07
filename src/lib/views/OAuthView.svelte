@@ -32,9 +32,7 @@
 		try {
 			clientId = await fetchClientId(host, forge);
 		} catch (error) {
-			errorMessage = $t("oauth_view.could_not_contact_host", {
-				error: error instanceof Error ? error.message : String(error),
-			});
+			errorMessage = error instanceof Error ? error.message : String(error);
 			return;
 		}
 
