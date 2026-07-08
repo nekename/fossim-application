@@ -28,7 +28,9 @@
 				const cid = `${community.forge}/${community.path}`;
 				if (!communityConfigs[cid]) {
 					fetchCommunityConfig(community)
-						.then((config) => (communityConfigs[cid] = config))
+						.then((config) => {
+							communityConfigs[cid] = config;
+						})
 						.catch(() => {});
 				}
 			}
