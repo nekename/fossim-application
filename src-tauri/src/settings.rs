@@ -5,6 +5,7 @@ use tauri::{AppHandle, Manager, command};
 pub struct Settings {
 	pub language: String,
 	pub minimise_to_tray: bool,
+	pub check_for_updates: bool,
 }
 
 impl Default for Settings {
@@ -12,6 +13,7 @@ impl Default for Settings {
 		Self {
 			language: "en".to_owned(),
 			minimise_to_tray: true,
+			check_for_updates: true,
 		}
 	}
 }

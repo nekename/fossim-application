@@ -38,6 +38,25 @@
 						/>
 					</div>
 				</div>
+
+				<div
+					class="rounded-field flex w-full items-center border border-current/20"
+				>
+					<label
+						for="settings-check_for_updates"
+						class="label grow border-r border-current/20 px-3 py-2.5 text-sm"
+					>
+						{$t("settings_view.check_for_updates")}
+					</label>
+					<div class="px-2.5">
+						<input
+							bind:checked={$settings.check_for_updates}
+							type="checkbox"
+							id="settings-check_for_updates"
+							class="checkbox"
+						/>
+					</div>
+				</div>
 			{/if}
 		{:else}
 			<p class="text-error text-sm">

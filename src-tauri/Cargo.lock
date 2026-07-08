@@ -1217,6 +1217,7 @@ dependencies = [
  "octocrab",
  "open",
  "secrecy",
+ "semver",
  "serde",
  "serde_json",
  "tauri",

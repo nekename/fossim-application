@@ -22,6 +22,32 @@ async fn get_build_info() -> String {
 }
 
 #[command]
+async fn check_for_updates() -> Result<serde_json::Value, String> {
+	let res = octocrab::instance()
+		.repos("nekename", "fossim-application")
+		.releases()
+		.get_latest()
+		.await
+		.map_err(|e| e.to_string())?;
+
+	if semver::Version::parse(built_info::PKG_VERSION)
+		.map_err(|e| e.to_string())?
+		.cmp(&semver::Version::parse(&res.tag_name[1..]).map_err(|e| e.to_string())?)
+		== std::cmp::Ordering::Less
+	{
+		Ok(serde_json::json!({
+			"tag_name": res.tag_name,
+			"body": res.body
+				.unwrap_or_else(|| "No description".to_owned())
+				.trim(),
+			"url": res.html_url.to_string(),
+		}))
+	} else {
+		Ok(serde_json::Value::Null)
+	}
+}
+
+#[command]
 async fn open_url(url: String) {
 	if let Err(e) = open::that_detached(&url) {
 		eprintln!("Failed to open URL {}: {}", url, e);
@@ -62,6 +88,7 @@ pub fn run() {
 		.plugin(tauri_plugin_notification::init())
 		.invoke_handler(tauri::generate_handler![
 			get_build_info,
+			check_for_updates,
 			open_url,
 			oauth::begin_device_auth,
 			settings::get_settings,

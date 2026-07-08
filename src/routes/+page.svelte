@@ -3,6 +3,7 @@
 	import CommunityList from "$lib/sections/CommunityList.svelte";
 	import MessageList from "$lib/sections/MessageList.svelte";
 	import OnboardingView from "$lib/views/OnboardingView.svelte";
+	import UpdaterView from "$lib/views/UpdaterView.svelte";
 
 	import type { Channel, Community, Thread } from "$lib/communities";
 	import { db, liveQuery } from "$lib/db";
@@ -122,3 +123,5 @@
 		{/if}
 	</div>
 {/if}
+
+<UpdaterView />
