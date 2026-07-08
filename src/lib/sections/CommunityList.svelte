@@ -1,5 +1,6 @@
 <script lang="ts">
 	import JoinCommunityView from "$lib/views/JoinCommunityView.svelte";
+	import SettingsView from "$lib/views/SettingsView.svelte";
 
 	import {
 		fetchCommunityConfig,
@@ -9,6 +10,7 @@
 	import { db, liveQuery } from "$lib/db";
 	import { t } from "$lib/i18n";
 
+	import GearSixIcon from "phosphor-svelte/lib/GearSixIcon";
 	import PlusIcon from "phosphor-svelte/lib/PlusIcon";
 
 	let {
@@ -40,6 +42,7 @@
 	let isMouseOver = $state(false);
 	let isDrawerOpen = $derived(isMouseOver || !selectedCommunity);
 	let joinCommunityViewOpen = $state(false);
+	let settingsViewOpen = $state(false);
 </script>
 
 <div
@@ -130,16 +133,35 @@
 				<li>
 					<button
 						onclick={() => (joinCommunityViewOpen = true)}
+						class="text-secondary"
 						class:w-min={!isDrawerOpen}
 					>
 						<PlusIcon
 							class={[
-								"text-base-content inline-block size-10 min-w-10 transition-all duration-200",
+								"inline-block size-9 min-w-10 p-0.5 transition-all duration-200",
 								isDrawerOpen && "mr-1",
 							]}
 						/>
 						<span class="is-drawer-close:hidden truncate">
 							{$t("community_list.join_community")}
+						</span>
+					</button>
+				</li>
+
+				<li>
+					<button
+						onclick={() => (settingsViewOpen = true)}
+						class="text-secondary"
+						class:w-min={!isDrawerOpen}
+					>
+						<GearSixIcon
+							class={[
+								"inline-block size-9 min-w-10 p-0.5 transition-all duration-200",
+								isDrawerOpen && "mr-1",
+							]}
+						/>
+						<span class="is-drawer-close:hidden truncate">
+							{$t("community_list.open_settings")}
 						</span>
 					</button>
 				</li>
@@ -156,4 +178,8 @@
 		}}
 		onClose={() => (joinCommunityViewOpen = false)}
 	/>
+{/if}
+
+{#if settingsViewOpen}
+	<SettingsView onClose={() => (settingsViewOpen = false)} />
 {/if}

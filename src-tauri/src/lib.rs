@@ -1,4 +1,5 @@
 mod oauth;
+mod settings;
 
 #[tauri::command]
 async fn open_url(url: String) {
@@ -11,7 +12,12 @@ async fn open_url(url: String) {
 pub fn run() {
 	tauri::Builder::default()
 		.plugin(tauri_plugin_notification::init())
-		.invoke_handler(tauri::generate_handler![open_url, oauth::begin_device_auth])
+		.invoke_handler(tauri::generate_handler![
+			open_url,
+			oauth::begin_device_auth,
+			settings::get_settings,
+			settings::set_settings
+		])
 		.run(tauri::generate_context!())
 		.expect("Tauri application should be able to run");
 }

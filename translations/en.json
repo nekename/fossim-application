@@ -33,6 +33,7 @@
 	"communities.no_url_provided": "Please provide the repository URL of a Fossim community.",
 	"communities.unsupported_forge": "Unsupported forge '{{forge}}'. Currently supported forges: {{supported}}",
 	"community_list.join_community": "Join community",
+	"community_list.open_settings": "Open settings",
 	"confirm_host_view.continue_with": "Continue with",
 	"confirm_host_view.explanation.1": "This server hosts the community you're joining. You can be part of Fossim communities from different hosts at the same time - joining this community won't stop you from joining communities from other hosts.",
 	"confirm_host_view.explanation.2": "You'll interact with discussions through this host's integration and connect to this host to receive live notifications.",
@@ -63,5 +64,8 @@
 	"onboarding_view.join_fossim_community.1": "or join",
 	"onboarding_view.join_fossim_community.2": "Fossim's own community",
 	"onboarding_view.join_fossim_community.3": "to get started.",
-	"onboarding_view.welcome": "Welcome!"
+	"onboarding_view.welcome": "Welcome!",
+	"settings_view.language": "Language",
+	"settings_view.settings": "Settings",
+	"settings_view.unable_to_load_settings": "Unable to load settings"
 }
