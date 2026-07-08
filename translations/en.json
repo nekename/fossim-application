@@ -9,6 +9,7 @@
 	"channel_list.notifications.all": "All",
 	"channel_list.notifications.channels_only": "Channels only",
 	"channel_list.notifications.none": "None",
+	"channel_list.notifications.title": "{{user}} in {{location}}",
 	"channel_list.select_channel": "Now select a channel or thread",
 	"channel_list.select_community": "Select a community to start collaborating",
 	"channel_list.support_developer": "Support the developer",

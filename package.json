@@ -17,6 +17,7 @@
 		"@msgpack/msgpack": "^3",
 		"@octokit/graphql": "^9",
 		"@tauri-apps/api": "^2",
+		"@tauri-apps/plugin-notification": "^2",
 		"dexie": "^4",
 		"dompurify": "^3",
 		"highlight.js": "^11",

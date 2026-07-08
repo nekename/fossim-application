@@ -18,6 +18,12 @@
 	import { db, liveQuery } from "$lib/db";
 	import { t } from "$lib/i18n";
 
+	import { isTauri } from "@tauri-apps/api/core";
+	import {
+		isPermissionGranted,
+		requestPermission,
+		sendNotification,
+	} from "@tauri-apps/plugin-notification";
 	import BellSimpleIcon from "phosphor-svelte/lib/BellSimpleIcon";
 	import BellSimpleRingingIcon from "phosphor-svelte/lib/BellSimpleRingingIcon";
 	import BellSimpleSlashIcon from "phosphor-svelte/lib/BellSimpleSlashIcon";
@@ -96,6 +102,10 @@
 						);
 		}
 	});
+
+	let notifPermissionGranted = $state(
+		isTauri() ? isPermissionGranted() : Notification.permission === "granted",
+	);
 
 	async function initStoredSeqCounter(channelId: string, seqCount: number) {
 		if (
@@ -211,19 +221,47 @@
 						detail: { update, comment, parentId },
 					}),
 				);
-				if (
-					update === "created" &&
-					parentId === null &&
-					currentSeqCounters?.[channelId] !== undefined
-				) {
-					currentSeqCounters![channelId]++;
-					if (selectedChannel === channelId) {
-						db.seqCounters.put({
-							forge: community.forge,
-							path: community.path,
-							channelId,
-							seqCount: currentSeqCounters![channelId],
+
+				if (update === "created" && parentId === null) {
+					if (currentSeqCounters?.[channelId] !== undefined) {
+						currentSeqCounters![channelId]++;
+						if (selectedChannel === channelId) {
+							db.seqCounters.put({
+								forge: community.forge,
+								path: community.path,
+								channelId,
+								seqCount: currentSeqCounters![channelId],
+							});
+						}
+					}
+
+					if (
+						$notifLevel !== "none" &&
+						notifPermissionGranted &&
+						(document.hasFocus() === false ||
+							!show ||
+							selectedChannel !== channelId) &&
+						($notifLevel === "all" || channels?.some((c) => c.id === channelId))
+					) {
+						const channelTitle =
+							channels?.find((c) => c.id === channelId)?.title ??
+							threads?.find((t) => t.id === channelId)?.title;
+						const title = $t("channel_list.notifications.title", {
+							user: comment.author.login,
+							location:
+								(communityConfig?.name ?? community.path.split("/")[1]) +
+								(channelTitle ? ` #${channelTitle}` : ""),
 						});
+						if (isTauri()) {
+							sendNotification({
+								title,
+								body: comment.body,
+							});
+						} else {
+							new Notification(title, {
+								body: comment.body,
+							});
+						}
 					}
 				}
 			},
@@ -269,6 +307,15 @@
 			retryListen(false);
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : String(error);
+		}
+
+		if (!notifPermissionGranted) {
+			if (isTauri()) {
+				notifPermissionGranted = (await requestPermission()) === "granted";
+			} else if (Notification.permission === "default") {
+				notifPermissionGranted =
+					(await Notification.requestPermission()) === "granted";
+			}
 		}
 	});
 
