@@ -1,7 +1,7 @@
 <script lang="ts">
 	import "../app.css";
 
-	import { isTauri, invoke } from "@tauri-apps/api/core";
+	import { invoke, isTauri } from "@tauri-apps/api/core";
 
 	let { children } = $props();
 

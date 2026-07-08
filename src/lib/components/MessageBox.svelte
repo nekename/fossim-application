@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { marked } from "$lib/marked";
 	import { t } from "$lib/i18n";
+	import { marked } from "$lib/marked";
 
 	import DOMPurify from "dompurify";
 
