@@ -108,17 +108,16 @@
 	);
 
 	async function initStoredSeqCounter(channelId: string, seqCount: number) {
-		if (
-			!(await db.seqCounters
-				.where({
-					forge: community.forge,
-					path: community.path,
-					channelId,
-				})
-				.first())
-		) {
+		const existingCounter = await db.seqCounters
+			.where({
+				forge: community.forge,
+				path: community.path,
+				channelId,
+			})
+			.first();
+		if (!existingCounter || existingCounter.seqCount > seqCount) {
 			// We haven't seen this channel/thread before, so we mark all existing comments as read.
-			await db.seqCounters.add({
+			await db.seqCounters.put({
 				forge: community.forge,
 				path: community.path,
 				channelId,
@@ -494,7 +493,7 @@
 					{#if $storedSeqCounters && currentSeqCounters && $storedSeqCounters[channel.id] !== undefined && currentSeqCounters[channel.id] !== undefined}
 						{@const diff =
 							currentSeqCounters[channel.id] - $storedSeqCounters[channel.id]}
-						{#if diff}
+						{#if diff > 0}
 							<span
 								class="badge badge-sm badge-primary"
 								class:badge-secondary!={$notifLevel === "none"}
@@ -551,7 +550,7 @@
 					{#if $storedSeqCounters && currentSeqCounters && $storedSeqCounters[thread.id] !== undefined && currentSeqCounters[thread.id] !== undefined}
 						{@const diff =
 							currentSeqCounters[thread.id] - $storedSeqCounters[thread.id]}
-						{#if diff}
+						{#if diff > 0}
 							<span
 								class="badge badge-sm badge-primary"
 								class:badge-secondary!={$notifLevel !== "all"}
