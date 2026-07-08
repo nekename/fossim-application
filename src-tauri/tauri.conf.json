@@ -21,7 +21,7 @@
 			}
 		],
 		"security": {
-			"csp": "default-src 'self'; connect-src 'self' https://*; img-src 'self' data: https://*;"
+			"csp": "default-src 'self'; connect-src 'self' https://* wss://*; img-src 'self' data: https://*;"
 		}
 	},
 	"bundle": {
