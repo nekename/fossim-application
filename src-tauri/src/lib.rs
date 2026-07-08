@@ -83,7 +83,7 @@ fn hide_window(app: &AppHandle) -> Result<(), tauri::Error> {
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+pub async fn run() {
 	tauri::Builder::default()
 		.plugin(tauri_plugin_notification::init())
 		.invoke_handler(tauri::generate_handler![
@@ -146,6 +146,26 @@ pub fn run() {
 					};
 				})
 				.build(app)?;
+
+			use tauri_plugin_aptabase::{Builder, EventTracker, InitOptions};
+			app.handle().plugin(
+				Builder::new(
+					if settings::get_settings(app.handle().clone())
+						.map(|s| s.collect_statistics)
+						.unwrap_or(false)
+					{
+						"A-SH-3764066795"
+					} else {
+						""
+					},
+				)
+				.with_options(InitOptions {
+					host: Some("https://aptabase.amankhanna.me".to_owned()),
+					flush_interval: None,
+				})
+				.build(),
+			)?;
+			let _ = app.track_event("app_started", None);
 
 			Ok(())
 		})

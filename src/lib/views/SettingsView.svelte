@@ -58,6 +58,25 @@
 					</div>
 				</div>
 			{/if}
+
+			<div
+				class="rounded-field flex w-full items-center border border-current/20"
+			>
+				<label
+					for="settings-collect_statistics"
+					class="label grow border-r border-current/20 px-3 py-2.5 text-sm"
+				>
+					{$t("settings_view.collect_statistics")}
+				</label>
+				<div class="px-2.5">
+					<input
+						bind:checked={$settings.collect_statistics}
+						type="checkbox"
+						id="settings-collect_statistics"
+						class="checkbox"
+					/>
+				</div>
+			</div>
 		{:else}
 			<p class="text-error text-sm">
 				{$t("settings_view.unable_to_load_settings")}

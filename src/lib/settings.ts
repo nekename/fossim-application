@@ -7,6 +7,7 @@ export type Settings = {
 	language: string;
 	minimise_to_tray: boolean;
 	check_for_updates: boolean;
+	collect_statistics: boolean;
 };
 
 export const settings: Writable<Settings | null> = writable(null);
@@ -17,7 +18,12 @@ export const settings: Writable<Settings | null> = writable(null);
 		settings.set(
 			localStorage.getItem("settings")
 				? JSON.parse(localStorage.getItem("settings")!)
-				: { language: "en", minimise_to_tray: false, check_for_updates: false },
+				: {
+						language: "en",
+						minimise_to_tray: false,
+						check_for_updates: false,
+						collect_statistics: true,
+					},
 		);
 	}
 })();

@@ -66,6 +66,7 @@
 	"onboarding_view.join_fossim_community.3": "to get started.",
 	"onboarding_view.welcome": "Welcome!",
 	"settings_view.check_for_updates": "Check for updates",
+	"settings_view.collect_statistics": "Collect statistics",
 	"settings_view.language": "Language",
 	"settings_view.loading_build_info": "Loading build information...",
 	"settings_view.minimise_to_tray": "Minimise to tray",
