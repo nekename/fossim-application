@@ -18,6 +18,9 @@
 	import { db, liveQuery } from "$lib/db";
 	import { t } from "$lib/i18n";
 
+	import BellSimpleIcon from "phosphor-svelte/lib/BellSimpleIcon";
+	import BellSimpleRingingIcon from "phosphor-svelte/lib/BellSimpleRingingIcon";
+	import BellSimpleSlashIcon from "phosphor-svelte/lib/BellSimpleSlashIcon";
 	import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
 	import HashStraightIcon from "phosphor-svelte/lib/HashStraightIcon";
 	import HeartIcon from "phosphor-svelte/lib/HeartIcon";
@@ -52,6 +55,20 @@
 	let threadsHasNextPage: boolean | null = $state(null);
 	let threadsEndCursor: string | null = $state(null);
 
+	let notifLevel = liveQuery(() =>
+		db.notifSettings
+			.where({ forge: community.forge, path: community.path })
+			.first()
+			.then((r) => r?.notifLevel ?? "channelsOnly"),
+	);
+	function setNotifLevel(level: "all" | "channelsOnly" | "none") {
+		db.notifSettings.put({
+			forge: community.forge,
+			path: community.path,
+			notifLevel: level,
+		});
+	}
+
 	const storedSeqCounters = liveQuery(async () => {
 		const map: { [channelId: string]: number } = {};
 		await db.seqCounters
@@ -64,14 +81,19 @@
 	let currentSeqCounters: { [channelId: string]: number } | null = $state(null);
 	$effect(() => {
 		if (currentSeqCounters && $storedSeqCounters) {
-			notifCount = Object.entries(currentSeqCounters).reduce(
-				(acc, [channelId, seqCount]) =>
-					acc +
-					(seqCount > $storedSeqCounters[channelId]
-						? seqCount - $storedSeqCounters[channelId]
-						: 0),
-				0,
-			);
+			notifCount =
+				$notifLevel === "none"
+					? 0
+					: Object.entries(currentSeqCounters).reduce(
+							(acc, [channelId, seqCount]) =>
+								acc +
+								(seqCount > $storedSeqCounters[channelId] &&
+								($notifLevel === "all" ||
+									channels?.some((c) => c.id === channelId))
+									? seqCount - $storedSeqCounters[channelId]
+									: 0),
+							0,
+						);
 		}
 	});
 
@@ -305,12 +327,12 @@
 				{communityConfig?.name || community.path.split("/")[1]}
 			</h2>
 
-			<div class="flex flex-row items-center gap-1">
+			<div class="flex flex-row items-center">
 				{#if fundingLinks?.length}
 					<button
 						class="btn btn-ghost btn-square btn-sm"
 						popovertarget={`sponsor-popover-${community.forge}-${community.path}`}
-						style={`anchor-name:--anchor-${community.forge}-${community.path}`}
+						style={`anchor-name:--sponsor-anchor-${community.forge}-${community.path}`}
 						title={$t("channel_list.support_developer")}
 					>
 						<HeartIcon class="size-5" />
@@ -319,13 +341,52 @@
 						class="dropdown menu rounded-box bg-base-100 shadow-sm"
 						popover
 						id={`sponsor-popover-${community.forge}-${community.path}`}
-						style={`position-anchor:--anchor-${community.forge}-${community.path}`}
+						style={`position-anchor:--sponsor-anchor-${community.forge}-${community.path}`}
 					>
 						{#each fundingLinks as link}
 							<li>
 								<a href={link.url} target="_blank">{link.platform}</a>
 							</li>
 						{/each}
+					</ul>
+				{/if}
+
+				{#if $notifLevel}
+					<button
+						class="btn btn-ghost btn-square btn-sm"
+						popovertarget={`notif-popover-${community.forge}-${community.path}`}
+						style={`anchor-name:--notif-anchor-${community.forge}-${community.path}`}
+						title={$t("channel_list.notifications")}
+					>
+						{#if $notifLevel === "all"}
+							<BellSimpleRingingIcon class="size-5" />
+						{:else if $notifLevel === "channelsOnly"}
+							<BellSimpleIcon class="size-5" />
+						{:else if $notifLevel === "none"}
+							<BellSimpleSlashIcon class="size-5" />
+						{/if}
+					</button>
+					<ul
+						class="dropdown menu rounded-box bg-base-100 shadow-sm"
+						popover
+						id={`notif-popover-${community.forge}-${community.path}`}
+						style={`position-anchor:--notif-anchor-${community.forge}-${community.path}`}
+					>
+						<li class:menu-active={$notifLevel === "all"}>
+							<button onclick={() => setNotifLevel("all")}>
+								{$t("channel_list.notifications.all")}
+							</button>
+						</li>
+						<li class:menu-active={$notifLevel === "channelsOnly"}>
+							<button onclick={() => setNotifLevel("channelsOnly")}>
+								{$t("channel_list.notifications.channels_only")}
+							</button>
+						</li>
+						<li class:menu-active={$notifLevel === "none"}>
+							<button onclick={() => setNotifLevel("none")}>
+								{$t("channel_list.notifications.none")}
+							</button>
+						</li>
 					</ul>
 				{/if}
 
@@ -387,7 +448,10 @@
 						{@const diff =
 							currentSeqCounters[channel.id] - $storedSeqCounters[channel.id]}
 						{#if diff}
-							<span class="badge badge-sm badge-primary">
+							<span
+								class="badge badge-sm badge-primary"
+								class:badge-secondary!={$notifLevel === "none"}
+							>
 								{#if diff < 100}
 									{diff}
 								{:else}
@@ -441,7 +505,10 @@
 						{@const diff =
 							currentSeqCounters[thread.id] - $storedSeqCounters[thread.id]}
 						{#if diff}
-							<span class="badge badge-sm badge-primary">
+							<span
+								class="badge badge-sm badge-primary"
+								class:badge-secondary!={$notifLevel !== "all"}
+							>
 								{#if diff < 100}
 									{diff}
 								{:else}

@@ -153,9 +153,7 @@ export async function isChannel(
 	}
 }
 
-export async function fetchChannels(
-	community: Community,
-): Promise<{
+export async function fetchChannels(community: Community): Promise<{
 	fundingLinks: { url: string; platform: string }[];
 	channels: Channel[];
 }> {
@@ -318,3 +316,5 @@ export async function removeReaction(
 		throw unsupportedForgeError(community.forge);
 	}
 }
+
+export type CommunityNotifLevel = "all" | "channelsOnly" | "none";
