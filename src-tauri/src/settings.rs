@@ -4,12 +4,14 @@ use tauri::{AppHandle, Manager, command};
 #[derive(Serialize, Deserialize)]
 pub struct Settings {
 	pub language: String,
+	pub minimise_to_tray: bool,
 }
 
 impl Default for Settings {
 	fn default() -> Self {
 		Self {
 			language: "en".to_owned(),
+			minimise_to_tray: true,
 		}
 	}
 }
