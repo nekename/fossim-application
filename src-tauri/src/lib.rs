@@ -5,9 +5,23 @@ mod settings;
 // <https://github.com/nekename/OpenDeck/blob/main/src-tauri/src/main.rs>
 use tauri::menu::{IconMenuItemBuilder, MenuBuilder, MenuItemBuilder, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Manager, WindowEvent};
+use tauri::{AppHandle, Manager, WindowEvent, command};
 
-#[tauri::command]
+mod built_info {
+	include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
+
+#[command]
+async fn get_build_info() -> String {
+	format!(
+		"Fossim v{} ({}) on {}",
+		built_info::PKG_VERSION,
+		built_info::GIT_COMMIT_HASH_SHORT.unwrap_or("commit hash unknown"),
+		built_info::TARGET
+	)
+}
+
+#[command]
 async fn open_url(url: String) {
 	if let Err(e) = open::that_detached(&url) {
 		eprintln!("Failed to open URL {}: {}", url, e);
@@ -47,6 +61,7 @@ pub fn run() {
 	tauri::Builder::default()
 		.plugin(tauri_plugin_notification::init())
 		.invoke_handler(tauri::generate_handler![
+			get_build_info,
 			open_url,
 			oauth::begin_device_auth,
 			settings::get_settings,

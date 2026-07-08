@@ -2,7 +2,7 @@
 	import { t } from "$lib/i18n";
 	import { settings } from "$lib/settings";
 
-	import { isTauri } from "@tauri-apps/api/core";
+	import { invoke, isTauri } from "@tauri-apps/api/core";
 
 	let { onClose }: { onClose: () => void } = $props();
 </script>
@@ -43,6 +43,20 @@
 			<p class="text-error text-sm">
 				{$t("settings_view.unable_to_load_settings")}
 			</p>
+		{/if}
+
+		{#if isTauri()}
+			{#await invoke("get_build_info")}
+				<p class="text-secondary text-xs">
+					{$t("settings_view.loading_build_info")}
+				</p>
+			{:then buildInfo}
+				<p class="text-secondary text-xs">{buildInfo}</p>
+			{:catch error}
+				<p class="text-error text-xs">
+					{error instanceof Error ? error.message : String(error)}
+				</p>
+			{/await}
 		{/if}
 
 		<button class="btn btn-neutral mt-2 w-full" onclick={onClose}>

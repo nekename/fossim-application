@@ -11,6 +11,7 @@ name = "fossim_application_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
+built = { version = "0.8", features = ["git2"] }
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
