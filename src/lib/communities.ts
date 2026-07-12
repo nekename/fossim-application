@@ -18,9 +18,7 @@ export interface Community {
 	path: string;
 }
 
-export async function parseCommunityUrl(
-	communityUrl: string,
-): Promise<Community> {
+export function parseCommunityUrl(communityUrl: string): Community {
 	if (!communityUrl) {
 		throw new Error(get(t)("communities.no_url_provided"));
 	}
@@ -42,7 +40,7 @@ export interface CommunityConfig {
 	banner?: string;
 }
 
-let cachedCommunityConfigs: Record<string, CommunityConfig> = {};
+const cachedCommunityConfigs: Record<string, CommunityConfig> = {};
 export async function fetchCommunityConfig({
 	forge,
 	path,

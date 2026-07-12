@@ -4,7 +4,7 @@ import { t } from "../i18n";
 import { graphql, type GraphQlQueryResponseData } from "@octokit/graphql";
 import { get } from "svelte/store";
 
-let cachedChannelCategories: Record<string, any> = {};
+const cachedChannelCategories: Record<string, any> = {};
 async function fetchChannelCategoryId(accessToken: string, path: string) {
 	const [owner, repo] = path.split("/");
 

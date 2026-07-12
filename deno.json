@@ -1,0 +1,8 @@
+{
+	"exclude": ["src-tauri", "node_modules", "build", ".svelte-kit"],
+	"lint": {
+		"rules": {
+			"exclude": ["no-explicit-any", "no-sloppy-imports"]
+		}
+	}
+}

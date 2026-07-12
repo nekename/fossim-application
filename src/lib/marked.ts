@@ -41,7 +41,7 @@ marked.use(
 
 const forgeItemLink = {
 	name: "forgeItemLink",
-	level: "inline" as "inline", // TypeScript
+	level: "inline" as const, // TypeScript
 	start(src: string) {
 		return src.match(
 			/^(?:(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)#)|(?:GH-)|#)(\d+)$/,
@@ -63,7 +63,7 @@ const forgeItemLink = {
 		repo?: string;
 		number: string;
 	}) {
-		// @ts-expect-error
+		// @ts-expect-error this.parser is a property of `Marked`
 		const community = this.parser.options.community;
 		if (!community || community.forge !== "github") return token.raw;
 

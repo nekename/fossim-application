@@ -39,7 +39,9 @@ export async function makeApiRequest(
 			if (json && json.message) {
 				message = response.statusText + ": " + json.message;
 			}
-		} catch {}
+		} catch {
+			// If the error response is not JSON, just use the status text.
+		}
 		throw new Error(
 			get(t)("backend.could_not_contact_host", {
 				error: message,
@@ -49,7 +51,7 @@ export async function makeApiRequest(
 	return await response.json();
 }
 
-let cachedClientIds: { [host: string]: { [forge: string]: string } } = {};
+const cachedClientIds: { [host: string]: { [forge: string]: string } } = {};
 export async function fetchClientId(
 	host: string,
 	forge: string,
@@ -57,7 +59,7 @@ export async function fetchClientId(
 	if (cachedClientIds[host] && cachedClientIds[host][forge]) {
 		return cachedClientIds[host][forge];
 	}
-	let clientId = (await makeApiRequest(host, `/api/oauth/${forge}/client_id`))
+	const clientId = (await makeApiRequest(host, `/api/oauth/${forge}/client_id`))
 		.client_id;
 	cachedClientIds[host] = cachedClientIds[host] || {};
 	cachedClientIds[host][forge] = clientId;
