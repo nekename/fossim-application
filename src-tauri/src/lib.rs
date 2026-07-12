@@ -86,6 +86,9 @@ fn hide_window(app: &AppHandle) -> Result<(), tauri::Error> {
 pub async fn run() {
 	tauri::Builder::default()
 		.plugin(tauri_plugin_notification::init())
+		.plugin(tauri_plugin_single_instance::init(|app, _, _| {
+			let _ = show_window(app);
+		}))
 		.invoke_handler(tauri::generate_handler![
 			get_build_info,
 			check_for_updates,
