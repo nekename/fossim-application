@@ -11,7 +11,9 @@
 	import { t } from "$lib/i18n";
 
 	import GearSixIcon from "phosphor-svelte/lib/GearSixIcon";
+	import HeartIcon from "phosphor-svelte/lib/HeartIcon";
 	import PlusIcon from "phosphor-svelte/lib/PlusIcon";
+	import QuestionIcon from "phosphor-svelte/lib/QuestionIcon";
 
 	let {
 		selectedCommunity = $bindable(),
@@ -164,6 +166,44 @@
 							{$t("community_list.open_settings")}
 						</span>
 					</button>
+				</li>
+
+				<li>
+					<a
+						href="https://github.com/nekename/fossim-application/wiki/FAQ"
+						target="_blank"
+						class="text-secondary"
+						class:w-min={!isDrawerOpen}
+					>
+						<QuestionIcon
+							class={[
+								"inline-block size-9 min-w-10 p-0.5 transition-all duration-200",
+								isDrawerOpen && "mr-1",
+							]}
+						/>
+						<span class="is-drawer-close:hidden truncate">
+							{$t("community_list.get_help")}
+						</span>
+					</a>
+				</li>
+
+				<li>
+					<a
+						href="https://github.com/sponsors/nekename"
+						target="_blank"
+						class="text-secondary"
+						class:w-min={!isDrawerOpen}
+					>
+						<HeartIcon
+							class={[
+								"inline-block size-9 min-w-10 p-0.5 transition-all duration-200",
+								isDrawerOpen && "mr-1",
+							]}
+						/>
+						<span class="is-drawer-close:hidden truncate">
+							{$t("community_list.support_fossim")}
+						</span>
+					</a>
 				</li>
 			</ul>
 		</div>
