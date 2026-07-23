@@ -51,5 +51,11 @@
 	</branding>
 
 	<releases>
+		<release version="1.0.0" date="2026-07-23">
+			<url type="details">https://github.com/nekename/fossim-application/release/tag/v1.0.0</url>
+			<description>
+				<p>This is the first stable release of the Fossim client application.</p>
+			</description>
+		</release>
 	</releases>
 </component>
