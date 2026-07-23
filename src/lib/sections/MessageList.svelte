@@ -51,6 +51,24 @@
 				},
 			);
 
+			eventTarget.addEventListener(`channel-${channel.id}`, (e) => {
+				const { update }: { update: string } = (e as CustomEvent).detail;
+
+				if (update === "refresh" && comments) {
+					fetchComments(community, channel.id).then(
+						({ comments: fetchedComments, hasPreviousPage, startCursor }) => {
+							comments = fetchedComments;
+							commentsHasPreviousPage = hasPreviousPage;
+							commentsStartCursor = startCursor;
+
+							replies = {};
+							repliesHasPreviousPage = {};
+							repliesStartCursor = {};
+						},
+					);
+				}
+			});
+
 			eventTarget.addEventListener(`comment-${channel.id}`, (e) => {
 				const {
 					update,

@@ -269,44 +269,56 @@
 	}
 
 	onMount(async () => {
-		try {
-			communityConfig = await fetchCommunityConfig(community);
+		const retryListen = (delay: boolean = true) => {
+			setTimeout(
+				async () => {
+					try {
+						await listen(retryListen);
+						listenErrorMessage = null;
+					} catch (error) {
+						listenErrorMessage =
+							error instanceof Error ? error.message : String(error);
+						retryListen();
+						return;
+					}
 
-			const channelsRes = await fetchChannels(community);
-			channels = channelsRes.channels;
-			fundingLinks = channelsRes.fundingLinks;
-			const threadsRes = await fetchThreads(community);
-			threads = threadsRes.threads;
-			threadsHasNextPage = threadsRes.hasNextPage;
-			threadsEndCursor = threadsRes.endCursor;
+					try {
+						communityConfig = await fetchCommunityConfig(community);
 
-			currentSeqCounters = await fetchSeqCounters(community, [
-				...channels.map((c) => c.id),
-				...threads.map((t) => t.id),
-			]);
-			for (const [channelId, seqCount] of Object.entries(currentSeqCounters)) {
-				await initStoredSeqCounter(channelId, seqCount);
-			}
-
-			const retryListen = (delay: boolean = true) => {
-				setTimeout(
-					async () => {
-						try {
-							await listen(retryListen);
-							listenErrorMessage = null;
-						} catch (error) {
-							listenErrorMessage =
-								error instanceof Error ? error.message : String(error);
-							retryListen();
+						for (const channel of [...(channels ?? []), ...(threads ?? [])]) {
+							eventTarget.dispatchEvent(
+								new CustomEvent(`channel-${channel.id}`, {
+									detail: { update: "refresh" },
+								}),
+							);
 						}
-					},
-					delay ? 5000 : 0,
-				);
-			};
-			retryListen(false);
-		} catch (error) {
-			errorMessage = error instanceof Error ? error.message : String(error);
-		}
+
+						const channelsRes = await fetchChannels(community);
+						channels = channelsRes.channels;
+						fundingLinks = channelsRes.fundingLinks;
+						const threadsRes = await fetchThreads(community);
+						threads = threadsRes.threads;
+						threadsHasNextPage = threadsRes.hasNextPage;
+						threadsEndCursor = threadsRes.endCursor;
+
+						currentSeqCounters = await fetchSeqCounters(community, [
+							...channels.map((c) => c.id),
+							...threads.map((t) => t.id),
+						]);
+						for (const [channelId, seqCount] of Object.entries(
+							currentSeqCounters,
+						)) {
+							await initStoredSeqCounter(channelId, seqCount);
+						}
+					} catch (error) {
+						errorMessage =
+							error instanceof Error ? error.message : String(error);
+					}
+				},
+				delay ? 5000 : 0,
+			);
+		};
+		retryListen(false);
 
 		if (!notifPermissionGranted) {
 			if (isTauri()) {
