@@ -1,6 +1,5 @@
 {
 	"name": "fossim-application",
-	"version": "0.1.0",
 	"description": "",
 	"type": "module",
 	"scripts": {
