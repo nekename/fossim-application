@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>fossim</id>
+
+	<name>Fossim</name>
+	<summary>A streamlined and indexable future of collaboration for open-source projects</summary>
+	<developer id="me.amankhanna"><name>Aman Khanna</name></developer>
+	<launchable type="desktop-id">fossim.desktop</launchable>
+
+	<url type="vcs-browser">https://github.com/nekename/fossim-application</url>
+	<url type="homepage">https://github.com/nekename/fossim-application</url>
+	<url type="bugtracker">https://github.com/nekename/fossim-application/issues</url>
+	<url type="faq">https://github.com/nekename/fossim-application/wiki/FAQ</url>
+	<url type="contribute">https://github.com/nekename/fossim-application?tab=readme-ov-file#building-from-source--contributing</url>
+	<url type="donation">https://github.com/sponsors/nekename</url>
+	<url type="contact">https://github.com/nekename/fossim-application?tab=readme-ov-file#troubleshooting-support-and-communication</url>
+
+	<metadata_license>CC-BY-SA-4.0</metadata_license>
+	<project_license>GPL-3.0-or-later</project_license>
+	<content_rating type="oars-1.1" />
+
+	<description>
+		<p>Fossim is a collaboration platform for open-source projects, but what makes it different from a platform like Discord, Matrix, Slack or Zulip is that it's built on the software forge that projects are already using for source control.</p>
+		<p>By using GitHub Discussions as the content index for your project's community (note: Fossim is designed with support for different forges in mind, and the project would be very happy to accept contributions to add support for other platforms) with the Fossim application as an interface familiar to users of the platforms listed above,</p>
+		<ul>
+			<li>the discussions taking place in your community become indexable by search engines,</li>
+			<li>you avoid splitting your community across multiple platforms and avoid requiring users to create new accounts,</li>
+			<li>content like issues and pull requests can be referenced using convenient shorthand syntax,</li>
+			<li>and you use a platform designed for the needs of open source, for example automatically displaying a project's funding links on its Fossim community overview.</li>
+		</ul>
+		<p>Additionally, you avoid the common hassle of migrating users to a new platform, since Fossim is built fully on top of GitHub Discussions, which can be accessed directly from GitHub's interface. Using Fossim, however, grants you access to</p>
+		<ul>
+			<li>all the communities you're a member of in one place, easy to navigate between with a unified interface,</li>
+			<li>system-level notifications for new messages including granular, per-community controls,</li>
+			<li>and an interface more tailored to a chat platform than a curated discussion forum.</li>
+		</ul>
+		<p>Want to set up a Fossim community? Head over to the backend documentation at https://github.com/nekename/fossim-backend to learn how to set up an event source for your community.</p>
+		<p>If you would like to support development of Fossim, consider sponsoring me on GitHub Sponsors, Ko-fi or Liberapay!</p>
+	</description>
+
+	<screenshots>
+		<screenshot type="default">
+			<image>https://raw.githubusercontent.com/nekename/fossim-application/release/.github/readme/fossim_screenshot_1.png</image>
+			<caption>Fossim client showcase</caption>
+		</screenshot>
+	</screenshots>
+
+	<branding>
+		<color type="primary" scheme_preference="light">#3f51b5</color>
+		<color type="primary" scheme_preference="dark">#3f51b5</color>
+	</branding>
+
+	<releases>
+	</releases>
+</component>
