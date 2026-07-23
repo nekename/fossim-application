@@ -20,7 +20,7 @@
     "npm:marked@18": "18.0.5",
     "npm:phosphor-svelte@3": "3.1.0_svelte@5.56.4_vite@8.1.0",
     "npm:prettier-plugin-svelte@4": "4.1.1_prettier@3.8.5_svelte@5.56.4",
-    "npm:prettier-plugin-tailwindcss@0.8": "0.8.0_prettier@3.8.5_prettier-plugin-svelte@4.1.1__prettier@3.8.5__svelte@5.56.4",
+    "npm:prettier-plugin-tailwindcss@0.8": "0.8.1_prettier@3.8.5_prettier-plugin-svelte@4.1.1__prettier@3.8.5__svelte@5.56.4",
     "npm:prettier@3": "3.8.5",
     "npm:svelte-check@4": "4.7.1_svelte@5.56.4_typescript@6.0.3",
     "npm:svelte-inview@4": "4.0.4_svelte@5.56.4",
@@ -718,8 +718,8 @@
         "svelte"
       ]
     },
-    "prettier-plugin-tailwindcss@0.8.0_prettier@3.8.5_prettier-plugin-svelte@4.1.1__prettier@3.8.5__svelte@5.56.4": {
-      "integrity": "sha512-V8ITGH87yuBDF6JpEZTOVlUz/saAwqb8f3HRgUj8Lh+tGCcrmorhsLpYqzygwFwK0PE2Ib6Mv3M7T/uE2tZV1g==",
+    "prettier-plugin-tailwindcss@0.8.1_prettier@3.8.5_prettier-plugin-svelte@4.1.1__prettier@3.8.5__svelte@5.56.4": {
+      "integrity": "sha512-iaFMYqDsE4ffdDkn5qup0j5f2aCEBFZrdrZnvu9QKTlWx/iGPeQ4HHu7b7fCPMxeo9nwQBiOAh2nSypdFYWJkw==",
       "dependencies": [
         "prettier",
         "prettier-plugin-svelte"
