@@ -9,6 +9,8 @@
 	import { db, liveQuery } from "$lib/db";
 	import { t } from "$lib/i18n";
 
+	import XCircleIcon from "phosphor-svelte/lib/XCircleIcon";
+
 	let communities = liveQuery(() => db.communities.toArray());
 	let channels: {
 		[community: string]: {
@@ -70,6 +72,35 @@
 {:else if $communities.length === 0}
 	<OnboardingView />
 {:else}
+	{#if !localStorage.getItem("faq-notice-dismissed")}
+		<div
+			class="alert alert-warning flex h-8 flex-row items-center justify-center rounded-none"
+			id="faq-notice"
+		>
+			<span>
+				{$t("alert.faq_notice.1")}
+				<a
+					class="link link-primary"
+					href="https://github.com/nekename/fossim-application/wiki/FAQ"
+					target="_blank"
+				>
+					{$t("alert.faq_notice.2")}
+				</a>
+				{$t("alert.faq_notice.3")}
+			</span>
+
+			<button
+				class="cursor-pointer"
+				onclick={() => {
+					localStorage.setItem("faq-notice-dismissed", "true");
+					document.getElementById("faq-notice")?.remove();
+				}}
+			>
+				<XCircleIcon class="text-black" />
+			</button>
+		</div>
+	{/if}
+
 	<div class="flex flex-row">
 		<CommunityList
 			bind:selectedCommunity

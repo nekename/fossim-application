@@ -1,4 +1,7 @@
 {
+	"alert.faq_notice.1": "Make sure to read the",
+	"alert.faq_notice.2": "Fossim FAQ",
+	"alert.faq_notice.3": "before getting started.",
 	"backend.could_not_contact_host": "Could not contact the community's host: {{error}}",
 	"channel_list.channels": "Channels",
 	"channel_list.leave_community": "Leave community",
